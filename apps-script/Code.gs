@@ -25,7 +25,7 @@
  */
 
 var HEADERS = [
-  'takenAt', 'course', 'schema', 'score', 'passScore', 'passed',
+  'takenAt', 'email', 'course', 'schema', 'score', 'passScore', 'passed',
   'correct', 'total', 'unanswered', 'earned', 'elapsedSeconds', 'seed',
   'mode', 'retryWrongOnly', 'bySection', 'missed', 'perQuestion', 'rawPayload'
 ];
@@ -74,6 +74,7 @@ function doPost(e) {
       var sheet = getSheet_();
       sheet.appendRow([
         p.takenAt || new Date().toISOString(),
+        p.email || '',
         p.course || '',
         p.schema || '',
         p.score, p.passScore, p.passed,

@@ -31,6 +31,7 @@ function samplePayload(fail) {
   return {
     schema: 'quiz-result/2',
     course: 'TEST — platform check',
+    email: 'test@example.com',
     generatedAt: now,
     takenAt: now,
     score: fail ? 33.3 : 100,

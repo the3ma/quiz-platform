@@ -107,12 +107,28 @@ lists it automatically.
 GitHub Pages is configured via the `.github/workflows/pages.yml` workflow
 (source = **GitHub Actions**). Every push to `main` redeploys the site.
 
+## Collecting the taker's email
+
+Set `config.requireEmail: true` in the quiz's `questions.json`. The quiz then
+gates its Start button behind a valid email, entered once and saved in the
+browser (`localStorage` key `quiz:takerEmail`, shared across every quiz on this
+site — so a repeat taker isn't asked again). A "Change email" link resets it. The
+email rides along in the `quiz-result/2` payload and lands in the sheet's `email`
+column.
+
+> Client-side only — the email is self-reported and not verified. Don't treat it
+> as authenticated identity.
+
 ## What's stored per submission
 
-One row: `takenAt, course, schema, score, passScore, passed, correct, total,
-unanswered, earned, elapsedSeconds, seed, mode, retryWrongOnly, bySection,
-missed, perQuestion, rawPayload`. No learner identity is collected unless you add
-it to the quiz — treat the sheet accordingly.
+One row: `takenAt, email, course, schema, score, passScore, passed, correct,
+total, unanswered, earned, elapsedSeconds, seed, mode, retryWrongOnly, bySection,
+missed, perQuestion, rawPayload`. `email` is empty unless the quiz set
+`requireEmail`. Treat the sheet as containing personal data when it does.
+
+> If you already have rows under the OLD header (no `email` column), clear the
+> sheet once so the new header row is written — otherwise new rows shift by one
+> column against the old header.
 
 ## Privacy / security notes
 
