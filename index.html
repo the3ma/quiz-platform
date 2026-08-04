@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz Platform</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#fff; --panel-2:#f0f2f5; --text:#16181d; --muted:#5b6270;
+  --line:#e2e5ea; --accent:#6b4df6; --accent-weak:#efeaff; --ok:#12805c; --bad:#c02640;
+  --radius:14px; --shadow:0 1px 2px rgba(16,18,28,.06),0 8px 24px rgba(16,18,28,.06);
+}
+@media (prefers-color-scheme:dark){html[data-theme="auto"]{
+  --bg:#0e1016;--panel:#171a22;--panel-2:#1f232d;--text:#eef0f5;--muted:#a0a7b6;
+  --line:#2a2f3a;--accent:#9b86ff;--accent-weak:#241f3d;--ok:#49d3a2;--bad:#ff7b93;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:820px;margin:0 auto;padding:32px 18px 80px}
+header{margin-bottom:24px}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{margin:.2em 0;font-size:clamp(22px,3vw,30px);letter-spacing:-.01em}
+.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:20px}
+.quiz{display:flex;gap:14px;align-items:center;padding:18px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  text-decoration:none;color:inherit;transition:border-color .15s}
+.quiz:hover{border-color:var(--accent)}
+.quiz .body{flex:1;min-width:0}
+.quiz h2{margin:0 0 4px;font-size:18px}
+.quiz p{margin:0;font-size:14px;color:var(--muted)}
+.quiz .meta{flex:none;font-size:13px;color:var(--muted);text-align:right}
+.badge{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--accent);background:var(--accent-weak);
+  border-radius:999px;padding:3px 9px;margin-top:6px}
+.empty{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--radius)}
+footer{margin-top:40px;font-size:13px;color:var(--muted)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:var(--panel-2);padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Quiz Platform</div>
+    <h1>Knowledge checks</h1>
+    <p class="muted">Pick a quiz to begin. Results are recorded automatically on submit.</p>
+  </header>
+  <div id="grid" class="grid" aria-live="polite"></div>
+  <footer>
+    Quizzes are generated with the <code>course-quiz-builder</code> skill and served statically.
+    Results are saved to a Google Sheet via an Apps Script endpoint — no backend server.
+  </footer>
+</div>
+<script>
+(function(){
+  var grid = document.getElementById('grid');
+  fetch('quizzes/manifest.json', { cache: 'no-cache' })
+    .then(function(r){ if(!r.ok) throw new Error('no manifest'); return r.json(); })
+    .then(function(m){
+      var list = (m && m.quizzes) || [];
+      if (!list.length){ grid.innerHTML = emptyState(); return; }
+      grid.innerHTML = '';
+      list.forEach(function(q){
+        var a = document.createElement('a');
+        a.className = 'quiz';
+        a.href = q.path;
+        a.innerHTML =
+          '<div class="body"><h2></h2><p></p>' +
+          (q.topics ? '<span class="badge">' + q.topics + ' topics</span>' : '') +
+          '</div>' +
+          '<div class="meta">' +
+            (q.questions != null ? q.questions + ' questions<br>' : '') +
+            (q.passScore != null ? 'pass ' + q.passScore + '%' : '') +
+          '</div>';
+        a.querySelector('h2').textContent = q.course || q.path;
+        a.querySelector('p').textContent = q.blurb || '';
+        grid.appendChild(a);
+      });
+    })
+    .catch(function(){ grid.innerHTML = emptyState(); });
+
+  function emptyState(){
+    return '<div class="empty">No quizzes published yet.<br>' +
+      'Add a built <code>quiz.html</code> under <code>quizzes/</code> and list it in ' +
+      '<code>quizzes/manifest.json</code>.</div>';
+  }
+})();
+</script>
+</body>
+</html>
