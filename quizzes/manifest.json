@@ -4,7 +4,7 @@
       "slug": "platform-demo",
       "path": "quizzes/platform-demo/",
       "course": "Platform Demo Quiz",
-      "blurb": "Sample quiz wired to the Sheets receiver.",
+      "blurb": "Sample quiz wired to the live Sheets receiver.",
       "questions": 3,
       "topics": 2,
       "passScore": 80
