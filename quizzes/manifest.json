@@ -1,6 +1,15 @@
 {
   "quizzes": [
     {
+      "slug": "javascript-sample",
+      "path": "quizzes/javascript-sample/",
+      "course": "JavaScript Sample",
+      "blurb": "Throwaway sample quiz for pipeline testing.",
+      "questions": 5,
+      "topics": 3,
+      "passScore": 70
+    },
+    {
       "slug": "platform-demo",
       "path": "quizzes/platform-demo/",
       "course": "Platform Demo Quiz",
@@ -8,6 +17,15 @@
       "questions": 3,
       "topics": 2,
       "passScore": 80
+    },
+    {
+      "slug": "web-basics-sample",
+      "path": "quizzes/web-basics-sample/",
+      "course": "Web Basics Sample",
+      "blurb": "Throwaway sample quiz for pipeline testing.",
+      "questions": 5,
+      "topics": 3,
+      "passScore": 70
     }
   ]
 }
