@@ -37,12 +37,34 @@ GitHub Pages (this repo)                         Google
    `apps-script/Code.gs`.
 3. Project Settings ▸ Script Properties ▸ add `SHEET_ID = <your id>`
    (optionally `SHEET_NAME`, defaults to `Results`).
-4. Deploy ▸ New deployment ▸ **Web app**: *Execute as* **Me**, *Who has access*
+4. **(Recommended)** add `SECRET = <a long random string>` — this endpoint is an
+   unauthenticated write URL; the secret gates it. See "Shared secret" below.
+5. Deploy ▸ New deployment ▸ **Web app**: *Execute as* **Me**, *Who has access*
    **Anyone**. Copy the **/exec** URL.
-5. Sanity check: open the `/exec` URL in a browser — it should return
+6. Sanity check: open the `/exec` URL in a browser — it should return
    `{"ok":true,...}` (that's `doGet`).
+7. Confirm writes work end-to-end without taking a quiz:
+   ```bash
+   node scripts/test-submit.mjs --url "https://script.google.com/macros/s/XXXX/exec" --token "<SECRET>"
+   ```
+   `{"ok":true}` + a new row in the Sheet = wired correctly. Drop `--token` if you
+   didn't set `SECRET`; add `--fail` to send a failing-score sample.
 
 > The header row is created automatically on the first submission.
+
+### Shared secret (recommended)
+
+Because *Who has access* is **Anyone**, the raw `/exec` URL lets anyone append
+rows. Set a `SECRET` script property, then submit to `.../exec?token=<SECRET>`.
+
+The token goes in the **URL query string**, not a header — a custom header would
+trigger a CORS preflight that Apps Script can't answer. `doPost` checks
+`e.parameter.token` against `SECRET`; mismatches get `{"ok":false,"error":"unauthorized"}`.
+If `SECRET` is unset the endpoint is open.
+
+> A public repo would expose the token if you commit it. Keep the full
+> `?token=` URL out of the repo — put it only in the quiz's `config.submit.url`
+> at build time, and don't publish that `questions.json`.
 
 ### 2. Build a quiz that reports to it
 

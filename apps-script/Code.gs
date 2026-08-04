@@ -16,6 +16,12 @@
  * (Optional) SHEET_NAME = <tab name>, defaults to "Results".
  * Or leave SHEET_ID unset and bind this script to a Sheet (Extensions ▸
  * Apps Script from the sheet) — it then uses the active spreadsheet.
+ *
+ * Shared-secret guard (recommended — this is an unauthenticated write endpoint):
+ *   Script Properties ▸ add  SECRET = <a long random string>
+ * Then the quiz must submit to  .../exec?token=<SECRET>  (a query param, NOT a
+ * header — a custom header would trigger a CORS preflight that Apps Script can't
+ * answer). If SECRET is unset, no token is required (open endpoint).
  */
 
 var HEADERS = [
@@ -49,6 +55,11 @@ function doGet() {
 /** Receive one quiz result and append a row. */
 function doPost(e) {
   try {
+    var secret = PropertiesService.getScriptProperties().getProperty('SECRET');
+    if (secret) {
+      var token = e && e.parameter ? e.parameter.token : null;
+      if (token !== secret) return json_({ ok: false, error: 'unauthorized' });
+    }
     if (!e || !e.postData || !e.postData.contents) {
       return json_({ ok: false, error: 'empty body' });
     }
