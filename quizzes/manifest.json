@@ -4,7 +4,7 @@
       "slug": "platform-demo",
       "path": "quizzes/platform-demo/",
       "course": "Platform Demo Quiz",
-      "blurb": "Sample quiz wired to the live Sheets receiver. Enter your email to begin.",
+      "blurb": "Sample quiz wired to the live Sheets receiver. Enter your details to begin.",
       "questions": 3,
       "topics": 2,
       "passScore": 80

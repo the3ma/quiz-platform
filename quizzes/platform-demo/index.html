@@ -193,19 +193,35 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
       <p class="muted" id="introBlurb"></p>
       <div class="stats" id="introStats"></div>
       <div class="emailGate hide" id="emailGate" style="margin:18px 0">
-        <label for="emailInput" style="display:block;font-weight:650;margin-bottom:6px">Your email</label>
-        <p class="small muted" style="margin:0 0 8px">Required to record your result. Saved in this browser so you only enter it once.</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start">
-          <input id="emailInput" type="email" inputmode="email" autocomplete="email"
-                 placeholder="you@example.com" aria-describedby="emailErr"
-                 style="flex:1;min-width:220px;min-height:var(--tap);padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--text);font:inherit">
+        <p class="small muted" style="margin:0 0 12px">Required to record your result. Saved in this browser so you only enter it once.</p>
+        <div style="display:grid;gap:12px">
+          <div>
+            <label for="nameInput" style="display:block;font-weight:650;margin-bottom:6px">Your name</label>
+            <input id="nameInput" type="text" autocomplete="name" placeholder="Jane Doe" aria-describedby="gateErr"
+                   style="width:100%;min-height:var(--tap);padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--text);font:inherit">
+          </div>
+          <div>
+            <label for="emailInput" style="display:block;font-weight:650;margin-bottom:6px">Your email</label>
+            <input id="emailInput" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" aria-describedby="gateErr"
+                   style="width:100%;min-height:var(--tap);padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--text);font:inherit">
+          </div>
+          <div>
+            <label for="roleInput" style="display:block;font-weight:650;margin-bottom:6px">Your role</label>
+            <select id="roleInput" aria-describedby="gateErr"
+                    style="width:100%;min-height:var(--tap);padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--text);font:inherit">
+              <option value="">Select your role…</option>
+              <option value="Developer">Developer</option>
+              <option value="Quality Assurance">Quality Assurance</option>
+              <option value="Business Analyst">Business Analyst</option>
+            </select>
+          </div>
         </div>
-        <p id="emailErr" class="small" role="alert" style="color:var(--bad);margin:8px 0 0;min-height:1.2em"></p>
+        <p id="gateErr" class="small" role="alert" style="color:var(--bad);margin:8px 0 0;min-height:1.2em"></p>
       </div>
       <div class="actions">
         <button class="btn primary" id="startBtn" type="button">Start quiz</button>
         <button class="btn ghost hide" id="resumeBtn" type="button">Resume saved attempt</button>
-        <button class="btn ghost hide" id="changeEmailBtn" type="button">Change email</button>
+        <button class="btn ghost hide" id="changeEmailBtn" type="button">Change my details</button>
       </div>
       <p class="small muted" style="margin-top:16px">
         Questions and answer options are shuffled on every start.
@@ -304,7 +320,7 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
 <canvas id="confetti" class="hide noprint" aria-hidden="true"></canvas>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script id="quizData" type="application/json">eyJjb3Vyc2UiOiJQbGF0Zm9ybSBEZW1vIFF1aXoiLCJleWVicm93IjoiS25vd2xlZGdlIGNoZWNrIiwiYmx1cmIiOiJTYW1wbGUgcXVpeiB3aXJlZCB0byB0aGUgbGl2ZSBTaGVldHMgcmVjZWl2ZXIuIEVudGVyIHlvdXIgZW1haWwgdG8gYmVnaW4uIiwiZ2VuZXJhdGVkQXQiOiIyMDI2LTA4LTA0IDE0OjMyIFVUQyIsImNvbmZpZyI6eyJwYXNzU2NvcmUiOjgwLCJ0aW1lTGltaXRNaW4iOm51bGwsInBhcnRpYWxDcmVkaXQiOmZhbHNlLCJzaHVmZmxlUXVlc3Rpb25zIjp0cnVlLCJzaHVmZmxlT3B0aW9ucyI6dHJ1ZSwic2hvd1RpbWVyIjp0cnVlLCJhbGxvd1JldHJ5Ijp0cnVlLCJyZXF1aXJlRW1haWwiOnRydWUsInN1Ym1pdCI6eyJ1cmwiOiJodHRwczovL3NjcmlwdC5nb29nbGUuY29tL21hY3Jvcy9zL0FLZnljYnlSaEtaUzZidXpLVHhaYlRRSHZSU082Y1pEX0l6TWZIMVRpc0llcmFrU3UtOVp0dVZvdVJPZDFSZXJhZzNOOFdaaS9leGVjIiwid2hlbiI6Im9uR3JhZGVPbmNlIiwiaW5jbHVkZSI6ImZ1bGwiLCJoZWFkZXJzIjp7IkNvbnRlbnQtVHlwZSI6InRleHQvcGxhaW4ifX19LCJxdWVzdGlvbnMiOlt7InByb21wdCI6IldoYXQgc2F2ZXMgcXVpeiByZXN1bHRzIGluIHRoaXMgcGxhdGZvcm0/IiwidHlwZSI6InNpbmdsZSIsIm9wdGlvbnMiOlsiQSBiYWNrZW5kIHNlcnZlciIsIkdvb2dsZSBBcHBzIFNjcmlwdCB0byBhIFNoZWV0IiwiTm90aGluZyJdLCJrIjoiTVE9PSIsInNlY3Rpb24iOiJCYXNpY3MiLCJleHBsYW5hdGlvbiI6IkFwcHMgU2NyaXB0IHdlYiBhcHAgYXBwZW5kcyByb3dzIHRvIGEgR29vZ2xlIFNoZWV0OyBubyBiYWNrZW5kLiIsInNvdXJjZSI6IlJFQURNRSJ9LHsicHJvbXB0IjoiV2h5IHRleHQvcGxhaW4gY29udGVudCB0eXBlIG9uIHN1Ym1pdD8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJGYXN0ZXIiLCJBdm9pZHMgYSBDT1JTIHByZWZsaWdodCBBcHBzIFNjcmlwdCBjYW5ub3QgYW5zd2VyIiwiU21hbGxlciJdLCJrIjoiTVE9PSIsInNlY3Rpb24iOiJCYXNpY3MiLCJleHBsYW5hdGlvbiI6ImFwcGxpY2F0aW9uL2pzb24gdHJpZ2dlcnMgYSBwcmVmbGlnaHQ7IHRleHQvcGxhaW4gaXMgYSBzaW1wbGUgcmVxdWVzdC4iLCJzb3VyY2UiOiJSRUFETUUifSx7InByb21wdCI6IldoaWNoIGFwcGVhciBpbiBxdWl6LXJlc3VsdC8yPyIsInR5cGUiOiJtdWx0aSIsIm9wdGlvbnMiOlsicGVyUXVlc3Rpb24iLCJjb3JyZWN0LWFuc3dlciBpbmRpY2VzIiwic2NvcmUiLCJieVNlY3Rpb24iXSwiayI6Ik1Dd3lMRE09Iiwic2VjdGlvbiI6IlBheWxvYWQiLCJleHBsYW5hdGlvbiI6IkFuc3dlciBrZXlzIGFyZSBuZXZlciBzZW50OyBwZXJRdWVzdGlvbi9zY29yZS9ieVNlY3Rpb24gYXJlLiIsInNvdXJjZSI6InN1Ym1pdC1ob29rLm1kIn1dfQ==</script>
+<script id="quizData" type="application/json">eyJjb3Vyc2UiOiJQbGF0Zm9ybSBEZW1vIFF1aXoiLCJleWVicm93IjoiS25vd2xlZGdlIGNoZWNrIiwiYmx1cmIiOiJTYW1wbGUgcXVpeiB3aXJlZCB0byB0aGUgbGl2ZSBTaGVldHMgcmVjZWl2ZXIuIEVudGVyIHlvdXIgZGV0YWlscyB0byBiZWdpbi4iLCJnZW5lcmF0ZWRBdCI6IjIwMjYtMDgtMDQgMTQ6NTQgVVRDIiwiY29uZmlnIjp7InBhc3NTY29yZSI6ODAsInRpbWVMaW1pdE1pbiI6bnVsbCwicGFydGlhbENyZWRpdCI6ZmFsc2UsInNodWZmbGVRdWVzdGlvbnMiOnRydWUsInNodWZmbGVPcHRpb25zIjp0cnVlLCJzaG93VGltZXIiOnRydWUsImFsbG93UmV0cnkiOnRydWUsInJlcXVpcmVFbWFpbCI6dHJ1ZSwic3VibWl0Ijp7InVybCI6Imh0dHBzOi8vc2NyaXB0Lmdvb2dsZS5jb20vbWFjcm9zL3MvQUtmeWNieUhXMHU3aFJTWnlfaDJybmxzckhCNWMxSEtFN2NrNWJ0ak9pQXZDdHRPRWhlUmExTE1xSFdLbDhTTUFJb3FURkFCVmcvZXhlYyIsIndoZW4iOiJvbkdyYWRlT25jZSIsImluY2x1ZGUiOiJmdWxsIiwiaGVhZGVycyI6eyJDb250ZW50LVR5cGUiOiJ0ZXh0L3BsYWluIn19fSwicXVlc3Rpb25zIjpbeyJwcm9tcHQiOiJXaGF0IHNhdmVzIHF1aXogcmVzdWx0cyBpbiB0aGlzIHBsYXRmb3JtPyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIkEgYmFja2VuZCBzZXJ2ZXIiLCJHb29nbGUgQXBwcyBTY3JpcHQgdG8gYSBTaGVldCIsIk5vdGhpbmciXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiQmFzaWNzIiwiZXhwbGFuYXRpb24iOiJBcHBzIFNjcmlwdCB3ZWIgYXBwIGFwcGVuZHMgcm93cyB0byBhIEdvb2dsZSBTaGVldDsgbm8gYmFja2VuZC4iLCJzb3VyY2UiOiJSRUFETUUifSx7InByb21wdCI6IldoeSB0ZXh0L3BsYWluIGNvbnRlbnQgdHlwZSBvbiBzdWJtaXQ/IiwidHlwZSI6InNpbmdsZSIsIm9wdGlvbnMiOlsiRmFzdGVyIiwiQXZvaWRzIGEgQ09SUyBwcmVmbGlnaHQgQXBwcyBTY3JpcHQgY2Fubm90IGFuc3dlciIsIlNtYWxsZXIiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiQmFzaWNzIiwiZXhwbGFuYXRpb24iOiJhcHBsaWNhdGlvbi9qc29uIHRyaWdnZXJzIGEgcHJlZmxpZ2h0OyB0ZXh0L3BsYWluIGlzIGEgc2ltcGxlIHJlcXVlc3QuIiwic291cmNlIjoiUkVBRE1FIn0seyJwcm9tcHQiOiJXaGljaCBhcHBlYXIgaW4gcXVpei1yZXN1bHQvMj8iLCJ0eXBlIjoibXVsdGkiLCJvcHRpb25zIjpbInBlclF1ZXN0aW9uIiwiY29ycmVjdC1hbnN3ZXIgaW5kaWNlcyIsInNjb3JlIiwiYnlTZWN0aW9uIl0sImsiOiJNQ3d5TERNPSIsInNlY3Rpb24iOiJQYXlsb2FkIiwiZXhwbGFuYXRpb24iOiJBbnN3ZXIga2V5cyBhcmUgbmV2ZXIgc2VudDsgcGVyUXVlc3Rpb24vc2NvcmUvYnlTZWN0aW9uIGFyZS4iLCJzb3VyY2UiOiJzdWJtaXQtaG9vay5tZCJ9XX0=</script>
 <script>
 /* =========================================================================
    CORE (pure) — no DOM. scripts/selftest.mjs slices this region and tests it.
@@ -430,7 +446,8 @@ function buildResultPayload(r, ctx){
   const questionAt = c.questionAt || function(){ return {}; };
   const payload = {
     schema: 'quiz-result/2',
-    course: c.course, email: c.email || '', generatedAt: c.generatedAt, takenAt: c.takenAt,
+    course: c.course, name: c.name || '', email: c.email || '', role: c.role || '',
+    generatedAt: c.generatedAt, takenAt: c.takenAt,
     score: r.pct, passScore: r.passScore, passed: r.passed,
     correct: r.correctCount, total: r.total, unanswered: r.unanswered,
     earned: r.earned, elapsedSeconds: r.elapsed, seed: r.seed,
@@ -483,18 +500,27 @@ function buildResultPayload(r, ctx){
   const KEYS = QS.map(function(q){ return decodeKey(q.k, b64d); });
   const SLUG = (DATA.course || 'quiz').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const STORE = 'quiz:' + SLUG + ':v1';
-  const EMAIL_STORE = 'quiz:takerEmail';   // shared across all quizzes on this origin
+  const TAKER_STORE = 'quiz:taker';        // {name,email,role} shared across all quizzes on this origin
   const THEME_STORE = 'quiz-theme';
+  const ROLES = ['Developer', 'Quality Assurance', 'Business Analyst'];
 
-  // ---- taker email (persisted once per browser) --------------------------
-  function getEmail(){
-    try { return localStorage.getItem(EMAIL_STORE) || ''; } catch (e){ return ''; }
+  // ---- taker profile (persisted once per browser) ------------------------
+  function getTaker(){
+    try {
+      const raw = localStorage.getItem(TAKER_STORE);
+      const t = raw ? JSON.parse(raw) : {};
+      return { name: t.name || '', email: t.email || '', role: t.role || '' };
+    } catch (e){ return { name: '', email: '', role: '' }; }
   }
-  function setEmail(v){
-    try { localStorage.setItem(EMAIL_STORE, v); } catch (e){}
+  function setTaker(t){
+    try { localStorage.setItem(TAKER_STORE, JSON.stringify(t)); } catch (e){}
   }
-  function clearEmail(){
-    try { localStorage.removeItem(EMAIL_STORE); } catch (e){}
+  function clearTaker(){
+    try { localStorage.removeItem(TAKER_STORE); } catch (e){}
+  }
+  function getEmail(){ return getTaker().email; }   // back-comp for payloadCtx
+  function takerValid(t){
+    return isValidEmail(t.email) && String(t.name).trim().length >= 2 && ROLES.indexOf(t.role) >= 0;
   }
 
   // ---- state -------------------------------------------------------------
@@ -574,27 +600,29 @@ function buildResultPayload(r, ctx){
       $('#changeEmailBtn').classList.add('hide');
       return;
     }
-    const saved = getEmail();
-    const have = isValidEmail(saved);
-    $('#emailGate').classList.toggle('hide', have);           // hide once we have a good one
-    $('#changeEmailBtn').classList.toggle('hide', !have);     // offer to change a saved email
+    const t = getTaker();
+    const have = takerValid(t);
+    $('#emailGate').classList.toggle('hide', have);           // hide once we have full valid details
+    $('#changeEmailBtn').classList.toggle('hide', !have);     // offer to change saved details
     if (!have){
-      $('#emailInput').value = saved || '';
-      $('#emailErr').textContent = '';
+      $('#nameInput').value = t.name || '';
+      $('#emailInput').value = t.email || '';
+      $('#roleInput').value = ROLES.indexOf(t.role) >= 0 ? t.role : '';
+      $('#gateErr').textContent = '';
     }
   }
   // Enforce the gate at Start. Returns true if OK to proceed.
   function emailGateOk(){
     if (!CFG.requireEmail) return true;
-    if (isValidEmail(getEmail())) return true;
-    const v = ($('#emailInput').value || '').trim();
-    if (!isValidEmail(v)){
-      $('#emailErr').textContent = v ? 'That doesn’t look like a valid email.' : 'Please enter your email to start.';
-      $('#emailInput').focus();
-      return false;
-    }
-    setEmail(v);
-    $('#emailErr').textContent = '';
+    if (takerValid(getTaker())) return true;
+    const name = ($('#nameInput').value || '').trim();
+    const email = ($('#emailInput').value || '').trim();
+    const role = $('#roleInput').value || '';
+    if (name.length < 2){ $('#gateErr').textContent = 'Please enter your name.'; $('#nameInput').focus(); return false; }
+    if (!isValidEmail(email)){ $('#gateErr').textContent = email ? 'That doesn’t look like a valid email.' : 'Please enter your email.'; $('#emailInput').focus(); return false; }
+    if (ROLES.indexOf(role) < 0){ $('#gateErr').textContent = 'Please select your role.'; $('#roleInput').focus(); return false; }
+    setTaker({ name: name, email: email, role: role });
+    $('#gateErr').textContent = '';
     renderEmailGate();
     return true;
   }
@@ -746,7 +774,7 @@ function buildResultPayload(r, ctx){
   // shared payload context for both the Copy button and the submit hook
   function payloadCtx(extra){
     return Object.assign({
-      course: DATA.course, email: getEmail(),
+      course: DATA.course, email: getTaker().email, name: getTaker().name, role: getTaker().role,
       generatedAt: DATA.generatedAt, takenAt: new Date().toISOString(),
       mode: S && S.subset ? 'retryWrong' : 'full', retryWrongOnly: !!(S && S.subset),
       questionAt: function(qi){ return QS[qi]; }
@@ -899,10 +927,12 @@ function buildResultPayload(r, ctx){
   $('#startBtn').addEventListener('click', function(){ if (!emailGateOk()) return; clearSave(); start(); });
   $('#resumeBtn').addEventListener('click', function(){ if (!emailGateOk()) return; resume(); });
   $('#changeEmailBtn').addEventListener('click', function(){
-    clearEmail(); renderEmailGate(); $('#emailInput').focus();
+    clearTaker(); renderEmailGate(); $('#nameInput').focus();
   });
-  $('#emailInput').addEventListener('keydown', function(e){
-    if (e.key === 'Enter'){ e.preventDefault(); $('#startBtn').click(); }
+  ['#nameInput', '#emailInput'].forEach(function(sel){
+    $(sel).addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); $('#startBtn').click(); }
+    });
   });
   $('#prevBtn').addEventListener('click', function(){ if (S.idx > 0){ S.idx--; renderQ(); save(); } });
   $('#nextBtn').addEventListener('click', function(){

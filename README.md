@@ -107,28 +107,44 @@ lists it automatically.
 GitHub Pages is configured via the `.github/workflows/pages.yml` workflow
 (source = **GitHub Actions**). Every push to `main` redeploys the site.
 
-## Collecting the taker's email
+## Collecting the taker's details
 
 Set `config.requireEmail: true` in the quiz's `questions.json`. The quiz then
-gates its Start button behind a valid email, entered once and saved in the
-browser (`localStorage` key `quiz:takerEmail`, shared across every quiz on this
-site — so a repeat taker isn't asked again). A "Change email" link resets it. The
-email rides along in the `quiz-result/2` payload and lands in the sheet's `email`
-column.
+gates its Start button behind a short form — **name**, **email**, and a **role**
+dropdown (`Developer` / `Quality Assurance` / `Business Analyst`) — entered once
+and saved in the browser (`localStorage` key `quiz:taker`, shared across every
+quiz on this site, so a repeat taker isn't asked again). A "Change my details"
+link resets it. The three fields ride along in the `quiz-result/2` payload and
+land in the sheet's `name` / `email` / `role` columns.
 
-> Client-side only — the email is self-reported and not verified. Don't treat it
-> as authenticated identity.
+> Client-side only — self-reported, not verified. Don't treat it as
+> authenticated identity.
+
+## Sheet styling
+
+When the header row is first created, the script styles the sheet like a
+dashboard: frozen colored header, banded rows, a filter across all columns
+(sort/filter from the header dropdowns), a date/time format on `takenAt`,
+percent/integer formats on the numeric columns, a `role` dropdown, and
+conditional colors (`result` Pass=green / Fail=red, plus a red→amber→green
+gradient on `score`).
+
+To (re)apply styling to an existing sheet without losing data, run the
+`reformat` function from the Apps Script editor, or hit `.../exec?reformat=1`
+once. (If the sheet still has an OLD header, clear it first so the new header is
+written.)
 
 ## What's stored per submission
 
-One row: `takenAt, email, course, schema, score, passScore, passed, correct,
-total, unanswered, earned, elapsedSeconds, seed, mode, retryWrongOnly, bySection,
-missed, perQuestion, rawPayload`. `email` is empty unless the quiz set
-`requireEmail`. Treat the sheet as containing personal data when it does.
+One row: `takenAt, name, email, role, course, result, score, passScore, correct,
+total, unanswered, earned, elapsedSeconds, seed, schema, mode, retryWrongOnly,
+bySection, missed, perQuestion, rawPayload`. `name` / `email` / `role` are empty
+unless the quiz set `requireEmail`. Treat the sheet as containing personal data
+when it does.
 
-> If you already have rows under the OLD header (no `email` column), clear the
-> sheet once so the new header row is written — otherwise new rows shift by one
-> column against the old header.
+> Changing the header layout (as this version did — added name/role/result,
+> reordered) means an existing sheet must be **cleared once** so the new header
+> is written; otherwise new rows misalign against the old header.
 
 ## Privacy / security notes
 
