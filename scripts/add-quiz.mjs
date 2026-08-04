@@ -29,6 +29,8 @@ function parseArgs(argv) {
     const k = argv[i];
     if (k === '--html') a.html = argv[++i];
     else if (k === '--slug') a.slug = argv[++i];
+    else if (k === '--home') a.home = argv[++i];
+    else if (k === '--no-home') a.noHome = true;
     else if (k === '--force') a.force = true;
     else if (k === '--help' || k === '-h') a.help = true;
     else throw new Error(`Unknown argument: ${k}`);
@@ -40,15 +42,27 @@ function slugify(s) {
   return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
+const PAYLOAD_RE = /(<script id="quizData" type="application\/json">)([\s\S]*?)(<\/script>)/;
+
 /** Pull the embedded quiz payload (course, question count, etc.) out of the page. */
 function readPayload(html) {
-  const m = /<script id="quizData" type="application\/json">([\s\S]*?)<\/script>/.exec(html);
+  const m = PAYLOAD_RE.exec(html);
   if (!m) return null;
-  const raw = m[1].trim();
+  const raw = m[2].trim();
   try {
     const json = raw.charAt(0) === '{' ? raw : Buffer.from(raw, 'base64').toString('utf8');
     return JSON.parse(json);
   } catch { return null; }
+}
+
+/** Re-embed a modified payload, preserving the page's plain-vs-base64 encoding. */
+function writePayload(html, payload) {
+  const m = PAYLOAD_RE.exec(html);
+  if (!m) return html;
+  const wasPlain = m[2].trim().charAt(0) === '{';
+  const json = JSON.stringify(payload);
+  const inline = wasPlain ? json : Buffer.from(json, 'utf8').toString('base64');
+  return html.replace(PAYLOAD_RE, m[1] + inline.replace(/<\/script/gi, '<\\/script') + m[3]);
 }
 
 function main() {
@@ -60,12 +74,21 @@ function main() {
   const src = resolve(process.cwd(), args.html);
   if (!existsSync(src)) { console.error(`ERROR: not found: ${src}`); process.exit(1); }
 
-  const html = readFileSync(src, 'utf8');
+  let html = readFileSync(src, 'utf8');
   const payload = readPayload(html);
   if (!payload) { console.error('ERROR: no quizData payload found — is this a built course-quiz-builder page?'); process.exit(1); }
 
   const slug = slugify(args.slug || payload.course || 'quiz');
   if (!slug) { console.error('ERROR: could not derive a slug; pass --slug'); process.exit(1); }
+
+  // Inject the hub link. Quizzes live at quizzes/<slug>/index.html, so the hub
+  // (repo root index.html) is always two levels up. --home overrides; --no-home skips.
+  if (!args.noHome) {
+    const home = args.home || '../../';
+    payload.config = payload.config || {};
+    payload.config.homeUrl = home;
+    html = writePayload(html, payload);
+  }
 
   const destDir = join(QUIZZES, slug);
   const destFile = join(destDir, 'index.html');

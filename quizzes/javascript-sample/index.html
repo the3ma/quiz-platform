@@ -183,6 +183,7 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
     </div>
     <span class="chip live hide" id="timerChip" title="Elapsed / remaining time">⏱ <span id="timer">0:00</span></span>
     <span class="chip hide" id="countChip"></span>
+    <a class="chip noprint hide" id="homeLink" href="#" title="Back to all quizzes">← All quizzes</a>
     <button class="iconbtn noprint" id="themeBtn" type="button" aria-label="Switch color theme" title="Theme">◐</button>
   </header>
 
@@ -289,6 +290,7 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
         <div class="actions noprint">
           <button class="btn primary" id="retakeBtn" type="button">Retake (reshuffled)</button>
           <button class="btn" id="retryWrongBtn" type="button">Retry wrong only</button>
+          <a class="btn hide" id="resultsHomeBtn" href="#">← All quizzes</a>
           <span class="spacer"></span>
           <button class="btn ghost" id="copyBtn" type="button">Copy result JSON</button>
           <button class="btn ghost" id="printBtn" type="button">Print / PDF</button>
@@ -320,7 +322,7 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
 <canvas id="confetti" class="hide noprint" aria-hidden="true"></canvas>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script id="quizData" type="application/json">eyJjb3Vyc2UiOiJKYXZhU2NyaXB0IFNhbXBsZSIsImV5ZWJyb3ciOiJLbm93bGVkZ2UgY2hlY2siLCJibHVyYiI6IlRocm93YXdheSBzYW1wbGUgcXVpeiBmb3IgcGlwZWxpbmUgdGVzdGluZy4iLCJnZW5lcmF0ZWRBdCI6IjIwMjYtMDgtMDQgMTU6MDAgVVRDIiwiY29uZmlnIjp7InBhc3NTY29yZSI6NzAsInRpbWVMaW1pdE1pbiI6bnVsbCwicGFydGlhbENyZWRpdCI6ZmFsc2UsInNodWZmbGVRdWVzdGlvbnMiOnRydWUsInNodWZmbGVPcHRpb25zIjp0cnVlLCJzaG93VGltZXIiOnRydWUsImFsbG93UmV0cnkiOnRydWUsInJlcXVpcmVFbWFpbCI6dHJ1ZSwic3VibWl0Ijp7InVybCI6Imh0dHBzOi8vc2NyaXB0Lmdvb2dsZS5jb20vbWFjcm9zL3MvQUtmeWNieUhXMHU3aFJTWnlfaDJybmxzckhCNWMxSEtFN2NrNWJ0ak9pQXZDdHRPRWhlUmExTE1xSFdLbDhTTUFJb3FURkFCVmcvZXhlYyIsIndoZW4iOiJvbkdyYWRlIiwiaW5jbHVkZSI6ImZ1bGwiLCJoZWFkZXJzIjp7IkNvbnRlbnQtVHlwZSI6InRleHQvcGxhaW4ifX19LCJxdWVzdGlvbnMiOlt7InByb21wdCI6IldoaWNoIGlzIE5PVCBhIEphdmFTY3JpcHQgcHJpbWl0aXZlIHR5cGU/IiwidHlwZSI6InNpbmdsZSIsIm9wdGlvbnMiOlsic3RyaW5nIiwibnVtYmVyIiwiYXJyYXkiLCJib29sZWFuIl0sImsiOiJNZz09Iiwic2VjdGlvbiI6IlR5cGVzIiwiZXhwbGFuYXRpb24iOiJhcnJheSBpcyBhbiBvYmplY3QsIG5vdCBhIHByaW1pdGl2ZS4iLCJzb3VyY2UiOiJKUyB0eXBlcyJ9LHsicHJvbXB0IjoidHlwZW9mIG51bGwgcmV0dXJucz8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJcIm51bGxcIiIsIlwib2JqZWN0XCIiLCJcInVuZGVmaW5lZFwiIiwiXCJub25lXCIiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiVHlwZXMiLCJleHBsYW5hdGlvbiI6Ikhpc3RvcmljIEpTIHF1aXJrOiB0eXBlb2YgbnVsbCA9PT0gJ29iamVjdCcuIiwic291cmNlIjoiSlMgdHlwZXMifSx7InByb21wdCI6IldoaWNoIGtleXdvcmQgZGVjbGFyZXMgYSBibG9jay1zY29wZWQgdmFyaWFibGU/IiwidHlwZSI6InNpbmdsZSIsIm9wdGlvbnMiOlsidmFyIiwibGV0IiwiZnVuY3Rpb24iLCJnbG9iYWwiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiRnVuY3Rpb25zIiwiZXhwbGFuYXRpb24iOiJsZXQgKGFuZCBjb25zdCkgYXJlIGJsb2NrLXNjb3BlZDsgdmFyIGlzIGZ1bmN0aW9uLXNjb3BlZC4iLCJzb3VyY2UiOiJKUyBzY29wZSJ9LHsicHJvbXB0IjoiV2hpY2ggY3JlYXRlIGEgbmV3IGFycmF5IHdpdGhvdXQgbXV0YXRpbmcgdGhlIG9yaWdpbmFsPyIsInR5cGUiOiJtdWx0aSIsIm9wdGlvbnMiOlsibWFwIiwiZmlsdGVyIiwicHVzaCIsInNsaWNlIl0sImsiOiJNQ3d4TERNPSIsInNlY3Rpb24iOiJGdW5jdGlvbnMiLCJleHBsYW5hdGlvbiI6Im1hcC9maWx0ZXIvc2xpY2UgcmV0dXJuIG5ldyBhcnJheXM7IHB1c2ggbXV0YXRlcy4iLCJzb3VyY2UiOiJKUyBhcnJheXMifSx7InByb21wdCI6ImF3YWl0IGNhbiBvbmx5IGJlIHVzZWQgaW5zaWRlIGFuIGFzeW5jIGZ1bmN0aW9uIChvciB0b3AtbGV2ZWwgbW9kdWxlKS4iLCJ0eXBlIjoidHJ1ZWZhbHNlIiwib3B0aW9ucyI6WyJGYWxzZSIsIlRydWUiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiQXN5bmMiLCJleHBsYW5hdGlvbiI6ImF3YWl0IHJlcXVpcmVzIGFuIGFzeW5jIGNvbnRleHQuIiwic291cmNlIjoiSlMgYXN5bmMifV19</script>
+<script id="quizData" type="application/json">eyJjb3Vyc2UiOiJKYXZhU2NyaXB0IFNhbXBsZSIsImV5ZWJyb3ciOiJLbm93bGVkZ2UgY2hlY2siLCJibHVyYiI6IlRocm93YXdheSBzYW1wbGUgcXVpeiBmb3IgcGlwZWxpbmUgdGVzdGluZy4iLCJnZW5lcmF0ZWRBdCI6IjIwMjYtMDgtMDQgMTU6MTIgVVRDIiwiY29uZmlnIjp7InBhc3NTY29yZSI6NzAsInRpbWVMaW1pdE1pbiI6bnVsbCwicGFydGlhbENyZWRpdCI6ZmFsc2UsInNodWZmbGVRdWVzdGlvbnMiOnRydWUsInNodWZmbGVPcHRpb25zIjp0cnVlLCJzaG93VGltZXIiOnRydWUsImFsbG93UmV0cnkiOnRydWUsInJlcXVpcmVFbWFpbCI6dHJ1ZSwic3VibWl0Ijp7InVybCI6Imh0dHBzOi8vc2NyaXB0Lmdvb2dsZS5jb20vbWFjcm9zL3MvQUtmeWNieUhXMHU3aFJTWnlfaDJybmxzckhCNWMxSEtFN2NrNWJ0ak9pQXZDdHRPRWhlUmExTE1xSFdLbDhTTUFJb3FURkFCVmcvZXhlYyIsIndoZW4iOiJvbkdyYWRlIiwiaW5jbHVkZSI6ImZ1bGwiLCJoZWFkZXJzIjp7IkNvbnRlbnQtVHlwZSI6InRleHQvcGxhaW4ifX0sImhvbWVVcmwiOiIuLi8uLi8ifSwicXVlc3Rpb25zIjpbeyJwcm9tcHQiOiJXaGljaCBpcyBOT1QgYSBKYXZhU2NyaXB0IHByaW1pdGl2ZSB0eXBlPyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbInN0cmluZyIsIm51bWJlciIsImFycmF5IiwiYm9vbGVhbiJdLCJrIjoiTWc9PSIsInNlY3Rpb24iOiJUeXBlcyIsImV4cGxhbmF0aW9uIjoiYXJyYXkgaXMgYW4gb2JqZWN0LCBub3QgYSBwcmltaXRpdmUuIiwic291cmNlIjoiSlMgdHlwZXMifSx7InByb21wdCI6InR5cGVvZiBudWxsIHJldHVybnM/IiwidHlwZSI6InNpbmdsZSIsIm9wdGlvbnMiOlsiXCJudWxsXCIiLCJcIm9iamVjdFwiIiwiXCJ1bmRlZmluZWRcIiIsIlwibm9uZVwiIl0sImsiOiJNUT09Iiwic2VjdGlvbiI6IlR5cGVzIiwiZXhwbGFuYXRpb24iOiJIaXN0b3JpYyBKUyBxdWlyazogdHlwZW9mIG51bGwgPT09ICdvYmplY3QnLiIsInNvdXJjZSI6IkpTIHR5cGVzIn0seyJwcm9tcHQiOiJXaGljaCBrZXl3b3JkIGRlY2xhcmVzIGEgYmxvY2stc2NvcGVkIHZhcmlhYmxlPyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbInZhciIsImxldCIsImZ1bmN0aW9uIiwiZ2xvYmFsIl0sImsiOiJNUT09Iiwic2VjdGlvbiI6IkZ1bmN0aW9ucyIsImV4cGxhbmF0aW9uIjoibGV0IChhbmQgY29uc3QpIGFyZSBibG9jay1zY29wZWQ7IHZhciBpcyBmdW5jdGlvbi1zY29wZWQuIiwic291cmNlIjoiSlMgc2NvcGUifSx7InByb21wdCI6IldoaWNoIGNyZWF0ZSBhIG5ldyBhcnJheSB3aXRob3V0IG11dGF0aW5nIHRoZSBvcmlnaW5hbD8iLCJ0eXBlIjoibXVsdGkiLCJvcHRpb25zIjpbIm1hcCIsImZpbHRlciIsInB1c2giLCJzbGljZSJdLCJrIjoiTUN3eExETT0iLCJzZWN0aW9uIjoiRnVuY3Rpb25zIiwiZXhwbGFuYXRpb24iOiJtYXAvZmlsdGVyL3NsaWNlIHJldHVybiBuZXcgYXJyYXlzOyBwdXNoIG11dGF0ZXMuIiwic291cmNlIjoiSlMgYXJyYXlzIn0seyJwcm9tcHQiOiJhd2FpdCBjYW4gb25seSBiZSB1c2VkIGluc2lkZSBhbiBhc3luYyBmdW5jdGlvbiAob3IgdG9wLWxldmVsIG1vZHVsZSkuIiwidHlwZSI6InRydWVmYWxzZSIsIm9wdGlvbnMiOlsiRmFsc2UiLCJUcnVlIl0sImsiOiJNUT09Iiwic2VjdGlvbiI6IkFzeW5jIiwiZXhwbGFuYXRpb24iOiJhd2FpdCByZXF1aXJlcyBhbiBhc3luYyBjb250ZXh0LiIsInNvdXJjZSI6IkpTIGFzeW5jIn1dfQ==</script>
 <script>
 /* =========================================================================
    CORE (pure) — no DOM. scripts/selftest.mjs slices this region and tests it.
@@ -494,7 +496,7 @@ function buildResultPayload(r, ctx){
   const CFG = Object.assign({
     passScore: 80, timeLimitMin: null, partialCredit: false,
     shuffleQuestions: true, shuffleOptions: true, showTimer: true, allowRetry: true,
-    requireEmail: false
+    requireEmail: false, homeUrl: ''
   }, DATA.config || {});
   const QS = DATA.questions || [];
   const KEYS = QS.map(function(q){ return decodeKey(q.k, b64d); });
@@ -1007,6 +1009,23 @@ function buildResultPayload(r, ctx){
   window.addEventListener('beforeunload', function(e){
     if (S && !RESULT && Object.keys(S.responses).length){ save(); e.preventDefault(); e.returnValue = ''; }
   });
+
+  // home / all-quizzes link (only when a homeUrl is configured)
+  (function initHome(){
+    if (!CFG.homeUrl){ $('#homeLink').classList.add('hide'); $('#resultsHomeBtn').classList.add('hide'); return; }
+    $('#homeLink').setAttribute('href', CFG.homeUrl);
+    $('#homeLink').classList.remove('hide');
+    $('#resultsHomeBtn').setAttribute('href', CFG.homeUrl);
+    $('#resultsHomeBtn').classList.remove('hide');
+    $('#homeLink').addEventListener('click', function(e){
+      // warn if leaving mid-attempt with unsaved answers
+      if (S && !RESULT && Object.keys(S.responses).length){
+        if (!confirm('Leave this quiz and return to all quizzes? Your progress is saved in this browser.')){
+          e.preventDefault();
+        }
+      }
+    });
+  })();
 
   renderIntro();
   // expose for debugging / automated checks
