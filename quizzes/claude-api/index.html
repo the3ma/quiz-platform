@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building with the Claude API — Knowledge Check</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --panel-2:#f0f2f5; --text:#16181d; --muted:#5b6270;
+  --line:#e2e5ea; --accent:#6b4df6; --accent-weak:#efeaff;
+  --ok:#12805c; --ok-weak:#e4f5ee; --bad:#c02640; --bad-weak:#fdeaee; --warn:#8a5a00;
+  --ring:0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+  --shadow:0 1px 2px rgba(16,18,28,.06), 0 8px 24px rgba(16,18,28,.06);
+  --radius:14px; --tap:44px; --maxw:820px;
+}
+@media (prefers-color-scheme: dark){
+  html[data-theme="auto"]{
+    --bg:#0e1016; --panel:#171a22; --panel-2:#1f232d; --text:#eef0f5; --muted:#a0a7b6;
+    --line:#2a2f3a; --accent:#9b86ff; --accent-weak:#241f3d;
+    --ok:#49d3a2; --ok-weak:#12291f; --bad:#ff7b93; --bad-weak:#2b1219; --warn:#ffc76b;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  }
+}
+html[data-theme="dark"]{
+  --bg:#0e1016; --panel:#171a22; --panel-2:#1f232d; --text:#eef0f5; --muted:#a0a7b6;
+  --line:#2a2f3a; --accent:#9b86ff; --accent-weak:#241f3d;
+  --ok:#49d3a2; --ok-weak:#12291f; --bad:#ff7b93; --bad-weak:#2b1219; --warn:#ffc76b;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text); min-height:100vh;
+  font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:24px 18px 80px}
+a{color:var(--accent)}
+code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+kbd{background:var(--panel-2);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:12px;top:12px;z-index:99;background:var(--panel);padding:10px 14px;border-radius:10px;box-shadow:var(--shadow)}
+:focus-visible{outline:none;box-shadow:var(--ring);border-radius:10px}
+
+/* ---------- header ---------- */
+header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.brand{display:flex;flex-direction:column;gap:2px;margin-right:auto;min-width:0}
+.brand .eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.brand h1{margin:0;font-size:clamp(19px,2.6vw,26px);line-height:1.25;letter-spacing:-.01em}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);
+  color:var(--muted);border-radius:999px;padding:6px 11px;font-size:13px;font-weight:600;white-space:nowrap
+}
+.chip.live{color:var(--text)}
+.iconbtn{
+  min-width:var(--tap);min-height:var(--tap);display:inline-grid;place-items:center;cursor:pointer;
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--text);font-size:17px
+}
+.iconbtn:hover{border-color:var(--accent)}
+
+/* ---------- panel ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+.card + .card{margin-top:14px}
+.muted{color:var(--muted)}
+.small{font-size:13.5px}
+h2{margin:0 0 10px;font-size:19px;letter-spacing:-.01em}
+h3{margin:22px 0 8px;font-size:15px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+
+/* ---------- progress ---------- */
+.progress{height:8px;background:var(--panel-2);border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 55%,#3ac));transition:width .28s ease}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.dot{
+  min-width:30px;height:30px;padding:0 6px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);
+  color:var(--muted);font-size:12.5px;font-weight:700;cursor:pointer
+}
+.dot[data-state="answered"]{background:var(--accent-weak);border-color:var(--accent);color:var(--text)}
+.dot[data-state="current"]{outline:2px solid var(--accent);outline-offset:1px;color:var(--text)}
+.dot[data-flag="1"]::after{content:"★";margin-left:3px;color:var(--warn)}
+
+/* ---------- question ---------- */
+fieldset{border:0;margin:0;padding:0}
+legend{padding:0;font-size:clamp(17px,2.2vw,21px);font-weight:650;line-height:1.4;letter-spacing:-.01em}
+.qmeta{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.tag{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+.opts{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-top:16px}
+.opt{
+  display:flex;gap:12px;align-items:flex-start;min-width:0;min-height:var(--tap);padding:12px 14px;cursor:pointer;
+  background:var(--panel-2);border:1.5px solid var(--line);border-radius:12px;transition:border-color .15s,background .15s
+}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin:2px 0 0;accent-color:var(--accent);width:18px;height:18px;flex:none}
+.opt .key{
+  flex:none;min-width:22px;height:22px;display:grid;place-items:center;border-radius:6px;background:var(--panel);
+  border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--muted)
+}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-weak)}
+.opt:has(input:focus-visible){box-shadow:var(--ring)}
+.opt.correct{border-color:var(--ok);background:var(--ok-weak)}
+.opt.chosen-wrong{border-color:var(--bad);background:var(--bad-weak)}
+
+/* ---------- buttons ---------- */
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:22px}
+.actions .spacer{margin-left:auto}
+button.btn{
+  min-height:var(--tap);padding:0 18px;border-radius:12px;font:inherit;font-weight:650;cursor:pointer;
+  background:var(--panel-2);color:var(--text);border:1px solid var(--line)
+}
+button.btn:hover{border-color:var(--accent)}
+button.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.btn.primary:hover{filter:brightness(1.07)}
+button.btn.ghost{background:transparent}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- review table ---------- */
+/* minmax(0,1fr), not the default implicit `auto` track: `auto` floors at the row's
+   min-content width, and .revrow's nowrap question text makes that far wider than
+   the card — rows then paint outside it. Grid items also need min-width:0 to shrink. */
+.rev{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:8px}
+.revrow{display:flex;gap:12px;align-items:center;min-width:0;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:var(--panel-2);text-align:left;cursor:pointer;color:inherit;font:inherit}
+.revrow:hover{border-color:var(--accent)}
+.revrow .n{flex:none;font-weight:800;color:var(--muted);min-width:26px}
+.revrow .q{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.revrow .st{flex:none;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--line)}
+.st.answered{background:var(--accent-weak);border-color:var(--accent)}
+.st.blank{background:var(--bad-weak);border-color:var(--bad);color:var(--bad)}
+
+/* ---------- results ---------- */
+.verdict{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.ring{flex:none;width:132px;height:132px;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring .val{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .val b{display:block;font-size:30px;line-height:1;letter-spacing:-.02em}
+.ring .val span{font-size:12px;color:var(--muted);letter-spacing:.02em;font-weight:700;margin-top:2px}
+.banner{flex:1;min-width:240px}
+.banner .status{display:inline-flex;align-items:center;gap:8px;font-size:22px;font-weight:800;letter-spacing:-.01em}
+.pass .status{color:var(--ok)} .fail .status{color:var(--bad)}
+.status:focus-visible{box-shadow:none;outline:none} /* programmatic focus for screen readers only */
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.bars{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:6px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:14px}
+.bar .track{grid-column:1/-1;height:7px;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.bar .track > i{display:block;height:100%;background:var(--ok)}
+.bar[data-weak="1"] .track > i{background:var(--bad)}
+.bar .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .pct{color:var(--muted);font-variant-numeric:tabular-nums;font-weight:700}
+details.qr{border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+details.qr + details.qr{margin-top:8px}
+details.qr > summary{list-style:none;cursor:pointer;padding:13px 15px;display:flex;gap:11px;align-items:flex-start}
+details.qr > summary::-webkit-details-marker{display:none}
+details.qr .mark{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:900;color:#fff}
+details.qr[data-ok="1"] .mark{background:var(--ok)} details.qr[data-ok="0"] .mark{background:var(--bad)}
+details.qr .sumtxt{flex:1;min-width:0;font-weight:600}
+details.qr .body{padding:0 15px 15px 48px}
+.explain{margin-top:12px;padding:12px 14px;border-left:3px solid var(--accent);background:var(--accent-weak);border-radius:0 10px 10px 0;font-size:14.5px}
+.explain .src{display:block;margin-top:6px;color:var(--muted);font-size:12.5px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px}
+canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;transition:.25s;
+  background:var(--text);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:650;z-index:60
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.hide{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+@media print{
+  body{background:#fff}
+  .noprint,.iconbtn,button.btn{display:none !important}
+  .card{box-shadow:none;break-inside:avoid}
+  details.qr{break-inside:avoid} details.qr .body{display:block !important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to quiz</a>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow" id="eyebrow">Knowledge check</span>
+      <h1 id="courseName">Building with the Claude API</h1>
+    </div>
+    <span class="chip live hide" id="timerChip" title="Elapsed / remaining time">⏱ <span id="timer">0:00</span></span>
+    <span class="chip hide" id="countChip"></span>
+    <a class="chip noprint hide" id="homeLink" href="#" title="Back to all quizzes">← All quizzes</a>
+    <button class="iconbtn noprint" id="themeBtn" type="button" aria-label="Switch color theme" title="Theme">◐</button>
+  </header>
+
+  <main id="main">
+    <!-- INTRO -->
+    <section class="card" id="screenIntro">
+      <h2>Before you start</h2>
+      <p class="muted" id="introBlurb"></p>
+      <div class="stats" id="introStats"></div>
+      <div class="emailGate hide" id="emailGate" style="margin:18px 0">
+        <p class="small muted" style="margin:0 0 12px">Required to record your result. Saved in this browser so you only enter it once.</p>
+        <div style="display:grid;gap:12px">
+          <div>
+            <label for="nameInput" style="display:block;font-weight:650;margin-bottom:6px">Your name</label>
+            <input id="nameInput" type="text" autocomplete="name" placeholder="Jane Doe" aria-describedby="gateErr"
+                   style="width:100%;min-height:var(--tap);padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--text);font:inherit">
+          </div>
+          <div>
+            <label for="emailInput" style="display:block;font-weight:650;margin-bottom:6px">Your email</label>
+            <input id="emailInput" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" aria-describedby="gateErr"
+                   style="width:100%;min-height:var(--tap);padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--text);font:inherit">
+          </div>
+          <div>
+            <label for="roleInput" style="display:block;font-weight:650;margin-bottom:6px">Your role</label>
+            <select id="roleInput" aria-describedby="gateErr"
+                    style="width:100%;min-height:var(--tap);padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--text);font:inherit">
+              <option value="">Select your role…</option>
+              <option value="Developer">Developer</option>
+              <option value="Quality Assurance">Quality Assurance</option>
+              <option value="Business Analyst">Business Analyst</option>
+            </select>
+          </div>
+        </div>
+        <p id="gateErr" class="small" role="alert" style="color:var(--bad);margin:8px 0 0;min-height:1.2em"></p>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="startBtn" type="button">Start quiz</button>
+        <button class="btn ghost hide" id="resumeBtn" type="button">Resume saved attempt</button>
+        <button class="btn ghost hide" id="changeEmailBtn" type="button">Change my details</button>
+      </div>
+      <p class="small muted" style="margin-top:16px">
+        Questions and answer options are shuffled on every start.
+        Keyboard: <kbd>1</kbd>–<kbd>9</kbd> pick · <kbd>←</kbd>/<kbd>→</kbd> move · <kbd>Enter</kbd> next · <kbd>F</kbd> flag.
+        Progress is saved in this browser only.
+      </p>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="hide" id="screenQuiz" aria-live="polite">
+      <div class="card">
+        <div class="progress" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="prog"><i></i></div>
+        <div class="dots" id="dots" role="group" aria-label="Jump to question"></div>
+      </div>
+      <div class="card">
+        <form id="qForm" onsubmit="return false">
+          <fieldset>
+            <div class="qmeta" id="qMeta"></div>
+            <legend id="qPrompt"></legend>
+            <div class="opts" id="qOpts"></div>
+          </fieldset>
+        </form>
+        <div class="actions">
+          <button class="btn ghost" id="prevBtn" type="button">← Back</button>
+          <button class="btn ghost" id="flagBtn" type="button" aria-pressed="false">☆ Flag</button>
+          <span class="spacer"></span>
+          <button class="btn ghost" id="clearBtn" type="button">Clear</button>
+          <button class="btn primary" id="nextBtn" type="button">Next →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- REVIEW -->
+    <section class="hide" id="screenReview">
+      <div class="card">
+        <h2>Review your answers</h2>
+        <p class="muted small" id="reviewBlurb"></p>
+        <div class="rev" id="revList"></div>
+        <div class="actions">
+          <button class="btn ghost" id="backToQuizBtn" type="button">← Keep editing</button>
+          <span class="spacer"></span>
+          <button class="btn primary" id="submitBtn" type="button">Submit &amp; grade</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="hide" id="screenResults">
+      <div class="card" id="verdictCard">
+        <div class="verdict">
+          <div class="ring" aria-hidden="true">
+            <svg width="132" height="132" viewBox="0 0 132 132">
+              <circle cx="66" cy="66" r="57" fill="none" stroke="var(--panel-2)" stroke-width="12"></circle>
+              <circle id="ringArc" cx="66" cy="66" r="57" fill="none" stroke="var(--ok)" stroke-width="12"
+                      stroke-linecap="round" stroke-dasharray="358" stroke-dashoffset="358"></circle>
+            </svg>
+            <div class="val"><b id="scorePct">0%</b><span id="scoreRaw">0 / 0</span></div>
+          </div>
+          <div class="banner">
+            <div class="status" id="verdictText"></div>
+            <p class="muted" id="verdictSub" style="margin:8px 0 0"></p>
+            <div class="stats" id="resultStats"></div>
+          </div>
+        </div>
+        <div class="actions noprint">
+          <button class="btn primary" id="retakeBtn" type="button">Retake (reshuffled)</button>
+          <button class="btn" id="retryWrongBtn" type="button">Retry wrong only</button>
+          <a class="btn hide" id="resultsHomeBtn" href="#">← All quizzes</a>
+          <span class="spacer"></span>
+          <button class="btn ghost" id="copyBtn" type="button">Copy result JSON</button>
+          <button class="btn ghost" id="printBtn" type="button">Print / PDF</button>
+        </div>
+      </div>
+
+      <div class="card" id="breakdownCard">
+        <h2>Score by topic</h2>
+        <div class="bars" id="bars"></div>
+      </div>
+
+      <div class="card">
+        <h2>Answer key</h2>
+        <div class="filters noprint" role="group" aria-label="Filter questions">
+          <button class="btn ghost" data-filter="all" type="button" aria-pressed="true">All</button>
+          <button class="btn ghost" data-filter="wrong" type="button" aria-pressed="false">Incorrect only</button>
+          <button class="btn ghost" data-filter="right" type="button" aria-pressed="false">Correct only</button>
+          <span class="spacer"></span>
+          <button class="btn ghost" id="expandBtn" type="button">Expand all</button>
+        </div>
+        <div id="keyList"></div>
+      </div>
+    </section>
+  </main>
+
+  <p class="small muted" style="margin-top:26px" id="footNote"></p>
+</div>
+
+<canvas id="confetti" class="hide noprint" aria-hidden="true"></canvas>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script id="quizData" type="application/json">eyJjb3Vyc2UiOiJCdWlsZGluZyB3aXRoIHRoZSBDbGF1ZGUgQVBJIiwiZXllYnJvdyI6IkNsYXVkZSBBY2FkZW15IOKAlCBrbm93bGVkZ2UgY2hlY2siLCJibHVyYiI6IjMwIHF1ZXN0aW9ucyBhY3Jvc3MgdGhlIGNvdXJzZTogQVBJIGFjY2VzcywgcHJvbXB0IGV2YWx1YXRpb24sIHByb21wdCBlbmdpbmVlcmluZywgdG9vbCB1c2UsIFJBRywgQ2xhdWRlIGZlYXR1cmVzLCBNQ1AsIGFuZCBhZ2VudCB3b3JrZmxvd3MuIEdyb3VuZGVkIGluIHRoZSBjb3Vyc2UgY3VycmljdWx1bSBhbmQgY3VycmVudCBBbnRocm9waWMgQVBJIGJlaGF2aW9yLiIsImdlbmVyYXRlZEF0IjoiMjAyNi0wOC0wNSAxMTo1MCBVVEMiLCJjb25maWciOnsicGFzc1Njb3JlIjo4MCwidGltZUxpbWl0TWluIjpudWxsLCJwYXJ0aWFsQ3JlZGl0Ijp0cnVlLCJzaHVmZmxlUXVlc3Rpb25zIjp0cnVlLCJzaHVmZmxlT3B0aW9ucyI6dHJ1ZSwic2hvd1RpbWVyIjp0cnVlLCJhbGxvd1JldHJ5Ijp0cnVlLCJyZXF1aXJlRW1haWwiOnRydWUsInN1Ym1pdCI6eyJ1cmwiOiJodHRwczovL3NjcmlwdC5nb29nbGUuY29tL21hY3Jvcy9zL0FLZnljYnlIVzB1N2hSU1p5X2gycm5sc3JIQjVjMUhLRTdjazVidGpPaUF2Q3R0T0VoZVJhMUxNcUhXS2w4U01BSW9xVEZBQlZnL2V4ZWMiLCJ3aGVuIjoib25HcmFkZSIsImluY2x1ZGUiOiJmdWxsIiwiaGVhZGVycyI6eyJDb250ZW50LVR5cGUiOiJ0ZXh0L3BsYWluIn19LCJob21lVXJsIjoiLi4vLi4vIn0sInF1ZXN0aW9ucyI6W3sicHJvbXB0IjoiV2hpY2ggc2luZ2xlIGVuZHBvaW50IGhhbmRsZXMgQ2xhdWRlIG1lc3NhZ2VzLCB0b29sIHVzZSwgYW5kIHN0cnVjdHVyZWQgb3V0cHV0PyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIlBPU1QgL3YxL2NvbXBsZXRlIiwiUE9TVCAvdjEvbWVzc2FnZXMiLCJQT1NUIC92MS9jaGF0IiwiUE9TVCAvdjEvZ2VuZXJhdGUiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiQWNjZXNzaW5nIHRoZSBBUEkiLCJkaWZmaWN1bHR5IjoicmVjYWxsIiwiZXhwbGFuYXRpb24iOiJFdmVyeXRoaW5nIGdvZXMgdGhyb3VnaCBQT1NUIC92MS9tZXNzYWdlczsgdG9vbHMgYW5kIG91dHB1dCBjb25zdHJhaW50cyBhcmUgZmVhdHVyZXMgb2YgdGhpcyBvbmUgZW5kcG9pbnQuIiwic291cmNlIjoiQWNjZXNzaW5nIENsYXVkZSB3aXRoIHRoZSBBUEkifSx7InByb21wdCI6IldoaWNoIHJlcXVlc3QgZmllbGRzIGFyZSByZXF1aXJlZCBvbiBhIGJhc2ljIE1lc3NhZ2VzIEFQSSBjYWxsPyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIm1vZGVsIGFuZCBtZXNzYWdlcyBvbmx5IiwibW9kZWwsIG1heF90b2tlbnMsIGFuZCBtZXNzYWdlcyIsIm1vZGVsLCB0ZW1wZXJhdHVyZSwgYW5kIG1lc3NhZ2VzIiwiYXBpX2tleSwgbW9kZWwsIGFuZCBwcm9tcHQiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiQWNjZXNzaW5nIHRoZSBBUEkiLCJkaWZmaWN1bHR5IjoiYXBwbGljYXRpb24iLCJleHBsYW5hdGlvbiI6Im1vZGVsLCBtYXhfdG9rZW5zLCBhbmQgbWVzc2FnZXMgYXJlIHJlcXVpcmVkOyBhIG1pc3Npbmcgb25lIHJldHVybnMgYSA0MDAuIiwic291cmNlIjoiTWFraW5nIGEgcmVxdWVzdCJ9LHsicHJvbXB0IjoiSW4gYSBtdWx0aS10dXJuIGNvbnZlcnNhdGlvbiwgaG93IGRvZXMgdGhlIE1lc3NhZ2VzIEFQSSB0cmFjayBwcmlvciB0dXJucz8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJUaGUgc2VydmVyIHN0b3JlcyB0aGUgc2Vzc2lvbiBieSBjb252ZXJzYXRpb25faWQiLCJZb3UgcmVzZW5kIHRoZSBmdWxsIG1lc3NhZ2UgaGlzdG9yeSBlYWNoIHJlcXVlc3Qg4oCUIHRoZSBBUEkgaXMgc3RhdGVsZXNzIiwiSXQgY2FjaGVzIHR1cm5zIGZvciAyNCBob3VycyBhdXRvbWF0aWNhbGx5IiwiSXQgcmVhZHMgdGhlbSBmcm9tIHRoZSBBUEkga2V5IGhpc3RvcnkiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiQWNjZXNzaW5nIHRoZSBBUEkiLCJkaWZmaWN1bHR5IjoicmVjYWxsIiwiZXhwbGFuYXRpb24iOiJUaGUgQVBJIGlzIHN0YXRlbGVzcyDigJQgeW91IHNlbmQgdGhlIGZ1bGwgY29udmVyc2F0aW9uIGhpc3RvcnkgZWFjaCByZXF1ZXN0LiIsInNvdXJjZSI6Ik11bHRpLVR1cm4gY29udmVyc2F0aW9ucyJ9LHsicHJvbXB0IjoiV2hhdCBtdXN0IHRoZSBmaXJzdCBtZXNzYWdlIHJvbGUgYmUgaW4gYSB2YWxpZCBtZXNzYWdlcyBhcnJheT8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJhc3Npc3RhbnQiLCJzeXN0ZW0iLCJ1c2VyIiwiZWl0aGVyIHVzZXIgb3IgYXNzaXN0YW50Il0sImsiOiJNZz09Iiwic2VjdGlvbiI6IkFjY2Vzc2luZyB0aGUgQVBJIiwiZGlmZmljdWx0eSI6InJlY2FsbCIsImV4cGxhbmF0aW9uIjoiVGhlIGZpcnN0IG1lc3NhZ2UgbXVzdCBiZSB1c2VyOyBzdGFydGluZyB3aXRoIGFzc2lzdGFudCByZXR1cm5zIGEgNDAwLiIsInNvdXJjZSI6Ik11bHRpLVR1cm4gY29udmVyc2F0aW9ucyJ9LHsicHJvbXB0IjoiV2hlcmUgZG9lcyBhIHN5c3RlbSBwcm9tcHQgZ28gaW4gYSBNZXNzYWdlcyBBUEkgcmVxdWVzdD8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJBcyB0aGUgZmlyc3QgbWVzc2FnZSB3aXRoIHJvbGUgc3lzdGVtIiwiSW4gdGhlIHRvcC1sZXZlbCBzeXN0ZW0gZmllbGQiLCJJbiBvdXRwdXRfY29uZmlnIiwiQXBwZW5kZWQgdG8gdGhlIGxhc3QgdXNlciBtZXNzYWdlIl0sImsiOiJNUT09Iiwic2VjdGlvbiI6Ik1vZGVsIGNvbnRyb2xzIiwiZGlmZmljdWx0eSI6InJlY2FsbCIsImV4cGxhbmF0aW9uIjoiVGhlIHN5c3RlbSBwcm9tcHQgaXMgYSB0b3AtbGV2ZWwgc3lzdGVtIGZpZWxkLCBzZXBhcmF0ZSBmcm9tIHRoZSBtZXNzYWdlcyBhcnJheS4iLCJzb3VyY2UiOiJTeXN0ZW0gcHJvbXB0cyJ9LHsicHJvbXB0IjoiV2h5IHN0cmVhbSBhIHJlc3BvbnNlIHdpdGggYSBsYXJnZSBtYXhfdG9rZW5zIHZhbHVlPyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIkl0IGlzIGNoZWFwZXIgcGVyIHRva2VuIiwiTm9uLXN0cmVhbWluZyByZXF1ZXN0cyBjYW4gaGl0IFNESyBIVFRQIHRpbWVvdXRzIGF0IGhpZ2ggbWF4X3Rva2VucyIsIlN0cmVhbWluZyBkaXNhYmxlcyB0aGlua2luZyIsIkl0IGluY3JlYXNlcyB0aGUgY29udGV4dCB3aW5kb3ciXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiTW9kZWwgY29udHJvbHMiLCJkaWZmaWN1bHR5IjoiYXBwbGljYXRpb24iLCJleHBsYW5hdGlvbiI6IkFib3ZlIH4xNksgb3V0cHV0LCBub24tc3RyZWFtaW5nIHJlcXVlc3RzIHJpc2sgU0RLIEhUVFAgdGltZW91dHMg4oCUIHN0cmVhbSBpbnN0ZWFkLiIsInNvdXJjZSI6IlJlc3BvbnNlIHN0cmVhbWluZyJ9LHsicHJvbXB0IjoiV2hhdCBpcyB0aGUgcmVjb21tZW5kZWQgd2F5IHRvIGNvbnN0cmFpbiBhIHJlc3BvbnNlIHRvIGEgSlNPTiBzY2hlbWE/IiwidHlwZSI6InNpbmdsZSIsIm9wdGlvbnMiOlsiQSByZWdleCBvbiB0aGUgb3V0cHV0Iiwib3V0cHV0X2NvbmZpZy5mb3JtYXQgd2l0aCBhIGpzb25fc2NoZW1hIChvciBtZXNzYWdlcy5wYXJzZSgpKSIsIlByZWZpbGwgdGhlIGFzc2lzdGFudCB0dXJuIHdpdGggYSBicmFjZSIsIlNldCB0ZW1wZXJhdHVyZSB0byAwIl0sImsiOiJNUT09Iiwic2VjdGlvbiI6Ik1vZGVsIGNvbnRyb2xzIiwiZGlmZmljdWx0eSI6InJlY2FsbCIsImV4cGxhbmF0aW9uIjoiU3RydWN0dXJlZCBvdXRwdXRzIHVzZSBvdXRwdXRfY29uZmlnLmZvcm1hdDsgbWVzc2FnZXMucGFyc2UoKSB2YWxpZGF0ZXMgYXV0b21hdGljYWxseS4iLCJzb3VyY2UiOiJTdHJ1Y3R1cmVkIGRhdGEifSx7InByb21wdCI6IlByZWZpbGxpbmcgdGhlIGZpbmFsIGFzc2lzdGFudCB0dXJuIHRvIGZvcmNlIG91dHB1dCBzaGFwZSB3b3JrcyBvbiBjdXJyZW50IENsYXVkZSBtb2RlbHMuIiwidHlwZSI6InRydWVmYWxzZSIsIm9wdGlvbnMiOlsiVHJ1ZSIsIkZhbHNlIl0sImsiOiJNUT09Iiwic2VjdGlvbiI6Ik1vZGVsIGNvbnRyb2xzIiwiZGlmZmljdWx0eSI6ImFwcGxpY2F0aW9uIiwiZXhwbGFuYXRpb24iOiJMYXN0LWFzc2lzdGFudC10dXJuIHByZWZpbGxzIHJldHVybiBhIDQwMCBvbiBjdXJyZW50IG1vZGVsczsgdXNlIHN0cnVjdHVyZWQgb3V0cHV0cyBpbnN0ZWFkLiIsInNvdXJjZSI6IlN0cnVjdHVyZWQgZGF0YSJ9LHsicHJvbXB0IjoiV2hhdCBpcyB0aGUgcHVycG9zZSBvZiBhIHByb21wdCBldmFsdWF0aW9uIHdvcmtmbG93PyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIlRvIHJlZHVjZSB0b2tlbiBjb3N0IiwiVG8gbWVhc3VyZSBwcm9tcHQgcXVhbGl0eSBhZ2FpbnN0IGEgdGVzdCBkYXRhc2V0IHdpdGggYXV0b21hdGVkIGdyYWRpbmciLCJUbyBjYWNoZSBwcm9tcHRzIiwiVG8gdHJhbnNsYXRlIHByb21wdHMgYmV0d2VlbiBtb2RlbHMiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiUHJvbXB0IEV2YWx1YXRpb24iLCJkaWZmaWN1bHR5IjoicmVjYWxsIiwiZXhwbGFuYXRpb24iOiJFdmFsIHdvcmtmbG93cyBydW4gcHJvbXB0cyBvdmVyIGEgdGVzdCBkYXRhc2V0IGFuZCBncmFkZSB0aGUgb3V0cHV0cyB0byBtZWFzdXJlIHF1YWxpdHkuIiwic291cmNlIjoiUHJvbXB0IGV2YWx1YXRpb24ifSx7InByb21wdCI6IldoaWNoIGdyYWRpbmcgYXBwcm9hY2hlcyBkb2VzIHRoZSBjb3Vyc2UgY292ZXIgZm9yIGV2YWxzPyIsInR5cGUiOiJtdWx0aSIsIm9wdGlvbnMiOlsiTW9kZWwtYmFzZWQgZ3JhZGluZyIsIkNvZGUtYmFzZWQgZ3JhZGluZyIsIk1hbnVhbC1vbmx5IGdyYWRpbmciLCJSYW5kb20gc2FtcGxpbmciXSwiayI6Ik1Dd3giLCJzZWN0aW9uIjoiUHJvbXB0IEV2YWx1YXRpb24iLCJkaWZmaWN1bHR5IjoicmVjYWxsIiwiZXhwbGFuYXRpb24iOiJUaGUgZXZhbCBzZWN0aW9uIGNvdmVycyBtb2RlbC1iYXNlZCBhbmQgY29kZS1iYXNlZCBncmFkaW5nLiIsInNvdXJjZSI6Ik1vZGVsIGJhc2VkIGdyYWRpbmcgLyBDb2RlIGJhc2VkIGdyYWRpbmcifSx7InByb21wdCI6IldoZW4gaXMgY29kZS1iYXNlZCBncmFkaW5nIHByZWZlcmFibGUgdG8gbW9kZWwtYmFzZWQgZ3JhZGluZz8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJXaGVuIGNvcnJlY3RuZXNzIGlzIG9iamVjdGl2ZWx5IGNoZWNrYWJsZSAoZXhhY3QgdmFsdWUsIHZhbGlkIEpTT04sIHBhc3NlcyBhIHRlc3QpIiwiV2hlbiBvdXRwdXQgaXMgb3Blbi1lbmRlZCBwcm9zZSIsIkFsd2F5cyDigJQgaXQgaXMgY2hlYXBlciIsIldoZW4gdGhlIG1vZGVsIHJlZnVzZXMiXSwiayI6Ik1BPT0iLCJzZWN0aW9uIjoiUHJvbXB0IEV2YWx1YXRpb24iLCJkaWZmaWN1bHR5IjoiYXBwbGljYXRpb24iLCJleHBsYW5hdGlvbiI6IkNvZGUtYmFzZWQgZ3JhZGluZyBmaXRzIG9iamVjdGl2ZSBjaGVja3M7IG1vZGVsLWJhc2VkIGdyYWRpbmcgZml0cyBvcGVuLWVuZGVkIHF1YWxpdHkganVkZ21lbnRzLiIsInNvdXJjZSI6IkNvZGUgYmFzZWQgZ3JhZGluZyJ9LHsicHJvbXB0IjoiV2hpY2ggdGVjaG5pcXVlcyBkb2VzIHRoZSBwcm9tcHQtZW5naW5lZXJpbmcgc2VjdGlvbiB0ZWFjaD8iLCJ0eXBlIjoibXVsdGkiLCJvcHRpb25zIjpbIkJlaW5nIGNsZWFyIGFuZCBkaXJlY3QiLCJTdHJ1Y3R1cmluZyB3aXRoIFhNTCB0YWdzIiwiUHJvdmlkaW5nIGV4YW1wbGVzIiwiUmFpc2luZyB0ZW1wZXJhdHVyZSB0byAyLjAiXSwiayI6Ik1Dd3hMREk9Iiwic2VjdGlvbiI6IlByb21wdCBFbmdpbmVlcmluZyIsImRpZmZpY3VsdHkiOiJyZWNhbGwiLCJleHBsYW5hdGlvbiI6IkNsYXJpdHksIFhNTC10YWcgc3RydWN0dXJlLCBhbmQgZXhhbXBsZXMgYXJlIHRoZSB0YXVnaHQgdGVjaG5pcXVlczsgdGVtcGVyYXR1cmUgaXMgbm90IGEgcHJvbXB0LWVuZ2luZWVyaW5nIHRlY2huaXF1ZSBoZXJlLiIsInNvdXJjZSI6IlByb21wdCBFbmdpbmVlcmluZyBUZWNobmlxdWVzIn0seyJwcm9tcHQiOiJXaGF0IGRvZXMgcHJvdmlkaW5nIGV4YW1wbGVzIGluIGEgcHJvbXB0IGRlbW9uc3RyYXRlPyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIlplcm8tc2hvdCBwcm9tcHRpbmciLCJGZXctc2hvdCAoZXhhbXBsZS1iYXNlZCkgbGVhcm5pbmciLCJDaGFpbi1vZi10aG91Z2h0IG9ubHkiLCJQcm9tcHQgY2FjaGluZyJdLCJrIjoiTVE9PSIsInNlY3Rpb24iOiJQcm9tcHQgRW5naW5lZXJpbmciLCJkaWZmaWN1bHR5IjoicmVjYWxsIiwiZXhwbGFuYXRpb24iOiJFeGFtcGxlLWJhc2VkIHByb21wdGluZyBpcyBmZXctc2hvdCBsZWFybmluZy4iLCJzb3VyY2UiOiJQcm92aWRpbmcgZXhhbXBsZXMifSx7InByb21wdCI6IldoeSB3cmFwIGRpc3RpbmN0IHBhcnRzIG9mIGEgcHJvbXB0IGluIFhNTCB0YWdzPyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIkl0IHJlZHVjZXMgdG9rZW4gY29zdCIsIkl0IGdpdmVzIHRoZSBtb2RlbCBjbGVhciBzdHJ1Y3R1cmUgdG8gc2VwYXJhdGUgaW5zdHJ1Y3Rpb25zLCBjb250ZXh0LCBhbmQgZGF0YSIsIkl0IGVuYWJsZXMgc3RyZWFtaW5nIiwiSXQgaXMgcmVxdWlyZWQgYnkgdGhlIEFQSSJdLCJrIjoiTVE9PSIsInNlY3Rpb24iOiJQcm9tcHQgRW5naW5lZXJpbmciLCJkaWZmaWN1bHR5IjoiYXBwbGljYXRpb24iLCJleHBsYW5hdGlvbiI6IlhNTCB0YWdzIHN0cnVjdHVyZSB0aGUgcHJvbXB0IHNvIHRoZSBtb2RlbCBjYW4gZGlzdGluZ3Vpc2ggaXRzIHBhcnRzLiIsInNvdXJjZSI6IlN0cnVjdHVyZSB3aXRoIFhNTCB0YWdzIn0seyJwcm9tcHQiOiJXaGF0IGRvZXMgYSB0b29sIGRlZmluaXRpb24gcmVxdWlyZT8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJPbmx5IGEgbmFtZSIsIm5hbWUsIGRlc2NyaXB0aW9uLCBhbmQgaW5wdXRfc2NoZW1hIiwiQSBQeXRob24gZnVuY3Rpb24gcmVmZXJlbmNlIiwiQSByZWdleCJdLCJrIjoiTVE9PSIsInNlY3Rpb24iOiJUb29sIFVzZSIsImRpZmZpY3VsdHkiOiJyZWNhbGwiLCJleHBsYW5hdGlvbiI6IkVhY2ggdG9vbCBuZWVkcyBhIG5hbWUsIGRlc2NyaXB0aW9uLCBhbmQgSlNPTi1TY2hlbWEgaW5wdXRfc2NoZW1hLiIsInNvdXJjZSI6IlRvb2wgc2NoZW1hcyJ9LHsicHJvbXB0IjoiV2hlbiB0aGUgbW9kZWwgd2FudHMgdG8gY2FsbCBhIGN1c3RvbSB0b29sLCB3aGF0IHN0b3BfcmVhc29uIGRvZXMgdGhlIHJlc3BvbnNlIGNhcnJ5PyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbImVuZF90dXJuIiwidG9vbF91c2UiLCJtYXhfdG9rZW5zIiwicGF1c2VfdHVybiJdLCJrIjoiTVE9PSIsInNlY3Rpb24iOiJUb29sIFVzZSIsImRpZmZpY3VsdHkiOiJhcHBsaWNhdGlvbiIsImV4cGxhbmF0aW9uIjoic3RvcF9yZWFzb24gaXMgdG9vbF91c2U7IHlvdSBleGVjdXRlIHRoZSB0b29sIGFuZCBzZW5kIGJhY2sgYSB0b29sX3Jlc3VsdC4iLCJzb3VyY2UiOiJIYW5kbGluZyBtZXNzYWdlIGJsb2NrcyJ9LHsicHJvbXB0IjoiSG93IG11c3QgeW91IHJldHVybiB0aGUgcmVzdWx0IG9mIGEgdG9vbCBjYWxsIHRvIHRoZSBtb2RlbD8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJBcyBhIHN5c3RlbSBtZXNzYWdlIiwiQXMgYSB0b29sX3Jlc3VsdCBibG9jayB0aGF0IHJlZmVyZW5jZXMgdGhlIG1hdGNoaW5nIHRvb2xfdXNlX2lkIiwiQXMgcGxhaW4gdGV4dCBpbiBhIG5ldyB1c2VyIG1lc3NhZ2UiLCJCeSBjYWxsaW5nIGEgc2VwYXJhdGUgcmVzdWx0cyBlbmRwb2ludCJdLCJrIjoiTVE9PSIsInNlY3Rpb24iOiJUb29sIFVzZSIsImRpZmZpY3VsdHkiOiJhcHBsaWNhdGlvbiIsImV4cGxhbmF0aW9uIjoiU2VuZCBhIHRvb2xfcmVzdWx0IGJsb2NrIGNhcnJ5aW5nIHRoZSB0b29sX3VzZV9pZCBmcm9tIHRoZSB0b29sX3VzZSBibG9jay4iLCJzb3VyY2UiOiJTZW5kaW5nIHRvb2wgcmVzdWx0cyJ9LHsicHJvbXB0IjoiV2hlbiBDbGF1ZGUgZW1pdHMgbXVsdGlwbGUgdG9vbF91c2UgYmxvY2tzIGluIG9uZSByZXNwb25zZSwgaG93IGRvIHlvdSByZXNwb25kPyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIkV4ZWN1dGUgdGhlbSBhbmQgcmV0dXJuIGFsbCB0b29sX3Jlc3VsdCBibG9ja3MgaW4gYSBzaW5nbGUgdXNlciBtZXNzYWdlIiwiUmV0dXJuIGVhY2ggdG9vbF9yZXN1bHQgaW4gaXRzIG93biBzZXBhcmF0ZSBtZXNzYWdlIiwiT25seSBhbnN3ZXIgdGhlIGZpcnN0IHRvb2wiLCJJZ25vcmUgcGFyYWxsZWwgY2FsbHMiXSwiayI6Ik1BPT0iLCJzZWN0aW9uIjoiVG9vbCBVc2UiLCJkaWZmaWN1bHR5IjoiYXBwbGljYXRpb24iLCJleHBsYW5hdGlvbiI6IlJldHVybiBhbGwgdG9vbF9yZXN1bHQgYmxvY2tzIGluIG9uZSB1c2VyIG1lc3NhZ2U7IHNwbGl0dGluZyB0aGVtIHRyYWlucyB0aGUgbW9kZWwgdG8gc3RvcCBtYWtpbmcgcGFyYWxsZWwgY2FsbHMuIiwic291cmNlIjoiVXNpbmcgbXVsdGlwbGUgdG9vbHMifSx7InByb21wdCI6IlRoZSB3ZWIgc2VhcmNoIHRvb2wgdGF1Z2h0IGluIHRoZSBjb3Vyc2UgcnVucyB3aGVyZT8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJPbiB5b3VyIGNsaWVudCwgd2hpY2ggeW91IGltcGxlbWVudCIsIlNlcnZlci1zaWRlIG9uIEFudGhyb3BpYyBpbmZyYXN0cnVjdHVyZSIsIkluIGEgbG9jYWwgRG9ja2VyIGNvbnRhaW5lciIsIkluIHRoZSBicm93c2VyIl0sImsiOiJNUT09Iiwic2VjdGlvbiI6IlRvb2wgVXNlIiwiZGlmZmljdWx0eSI6InJlY2FsbCIsImV4cGxhbmF0aW9uIjoiV2ViIHNlYXJjaCBpcyBhIHNlcnZlci1zaWRlIHRvb2wg4oCUIGRlY2xhcmUgaXQgYW5kIENsYXVkZSBydW5zIHRoZSBxdWVyeSBzZXJ2ZXItc2lkZS4iLCJzb3VyY2UiOiJUaGUgd2ViIHNlYXJjaCB0b29sIn0seyJwcm9tcHQiOiJXaGF0IGRvZXMgUkFHIHN0YW5kIGZvciBpbiB0aGlzIGNvdXJzZT8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJSYXBpZCBBbnN3ZXIgR2VuZXJhdGlvbiIsIlJldHJpZXZhbC1BdWdtZW50ZWQgR2VuZXJhdGlvbiIsIlJhbmtlZCBBbnN3ZXIgR3JhZGluZyIsIlJlY3Vyc2l2ZSBBZ2VudCBHcmFwaCJdLCJrIjoiTVE9PSIsInNlY3Rpb24iOiJSQUciLCJkaWZmaWN1bHR5IjoicmVjYWxsIiwiZXhwbGFuYXRpb24iOiJSQUcgPSBSZXRyaWV2YWwtQXVnbWVudGVkIEdlbmVyYXRpb24uIiwic291cmNlIjoiSW50cm9kdWNpbmcgUkFHIn0seyJwcm9tcHQiOiJXaHkgY2h1bmsgdGV4dCBiZWZvcmUgYnVpbGRpbmcgYSBSQUcgaW5kZXg/IiwidHlwZSI6InNpbmdsZSIsIm9wdGlvbnMiOlsiVG8gdHJhbnNsYXRlIGl0IiwiVG8gc3BsaXQgZG9jdW1lbnRzIGludG8gcmV0cmlldmFibGUsIGVtYmVkZGFibGUgdW5pdHMiLCJUbyBjb21wcmVzcyB0aGUgbW9kZWwiLCJUbyByZW1vdmUgc3RvcCB3b3JkcyBvbmx5Il0sImsiOiJNUT09Iiwic2VjdGlvbiI6IlJBRyIsImRpZmZpY3VsdHkiOiJyZWNhbGwiLCJleHBsYW5hdGlvbiI6IkNodW5raW5nIHNwbGl0cyBkb2N1bWVudHMgaW50byB1bml0cyB0aGF0IGNhbiBiZSBlbWJlZGRlZCBhbmQgcmV0cmlldmVkLiIsInNvdXJjZSI6IlRleHQgY2h1bmtpbmcgc3RyYXRlZ2llcyJ9LHsicHJvbXB0IjoiQk0yNSBpbiB0aGUgUkFHIHBpcGVsaW5lIGlzIHdoYXQga2luZCBvZiBzZWFyY2g/IiwidHlwZSI6InNpbmdsZSIsIm9wdGlvbnMiOlsiRGVuc2UgdmVjdG9yL2VtYmVkZGluZyBzZWFyY2giLCJMZXhpY2FsIChrZXl3b3JkKSBzZWFyY2giLCJHcmFwaCB0cmF2ZXJzYWwiLCJGdXp6eSBpbWFnZSBzZWFyY2giXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiUkFHIiwiZGlmZmljdWx0eSI6ImFwcGxpY2F0aW9uIiwiZXhwbGFuYXRpb24iOiJCTTI1IGlzIGEgbGV4aWNhbCBrZXl3b3JkLXJhbmtpbmcgc2VhcmNoOyBlbWJlZGRpbmdzIHByb3ZpZGUgdGhlIGRlbnNlL3NlbWFudGljIHNpZGUuIiwic291cmNlIjoiQk0yNSBsZXhpY2FsIHNlYXJjaCJ9LHsicHJvbXB0IjoiV2hhdCBkbyB0ZXh0IGVtYmVkZGluZ3MgcmVwcmVzZW50PyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIkNvbXByZXNzZWQgaW1hZ2VzIiwiTnVtZXJpYyB2ZWN0b3JzIGNhcHR1cmluZyB0aGUgc2VtYW50aWMgbWVhbmluZyBvZiB0ZXh0IiwiQmFzZTY0LWVuY29kZWQgdG9rZW5zIiwiVGhlIG1vZGVsIHdlaWdodHMiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiUkFHIiwiZGlmZmljdWx0eSI6InJlY2FsbCIsImV4cGxhbmF0aW9uIjoiRW1iZWRkaW5ncyBhcmUgbnVtZXJpYyB2ZWN0b3JzIGVuY29kaW5nIHNlbWFudGljIG1lYW5pbmcsIGVuYWJsaW5nIHNpbWlsYXJpdHkgc2VhcmNoLiIsInNvdXJjZSI6IlRleHQgZW1iZWRkaW5ncyJ9LHsicHJvbXB0IjoiUHJvbXB0IGNhY2hpbmcgaXMgZnVuZGFtZW50YWxseSB3aGF0IGtpbmQgb2YgbWF0Y2g/IiwidHlwZSI6InNpbmdsZSIsIm9wdGlvbnMiOlsiQSBmdXp6eSBtYXRjaCIsIkEgcHJlZml4IG1hdGNoIOKAlCBhbnkgYnl0ZSBjaGFuZ2UgaW4gdGhlIHByZWZpeCBpbnZhbGlkYXRlcyBldmVyeXRoaW5nIGFmdGVyIGl0IiwiQSBzdWZmaXggbWF0Y2giLCJBIHBlci13b3JkIG1hdGNoIl0sImsiOiJNUT09Iiwic2VjdGlvbiI6IkNsYXVkZSBGZWF0dXJlcyIsImRpZmZpY3VsdHkiOiJhcHBsaWNhdGlvbiIsImV4cGxhbmF0aW9uIjoiQ2FjaGluZyBpcyBhIHByZWZpeCBtYXRjaDsgYSBzaW5nbGUgYnl0ZSBjaGFuZ2UgYW55d2hlcmUgaW4gdGhlIHByZWZpeCBpbnZhbGlkYXRlcyB0aGUgcmVzdC4iLCJzb3VyY2UiOiJSdWxlcyBvZiBwcm9tcHQgY2FjaGluZyJ9LHsicHJvbXB0IjoiV2hpY2ggcHJhY3RpY2VzIGtlZXAgcHJvbXB0IGNhY2hpbmcgZWZmZWN0aXZlPyIsInR5cGUiOiJtdWx0aSIsIm9wdGlvbnMiOlsiS2VlcCBzdGFibGUgY29udGVudCAoZnJvemVuIHN5c3RlbSBwcm9tcHQpIGZpcnN0IiwiUHV0IHZvbGF0aWxlIGNvbnRlbnQgKHRpbWVzdGFtcHMsIElEcykgYWZ0ZXIgdGhlIGxhc3QgYnJlYWtwb2ludCIsIkludGVycG9sYXRlIHRoZSBjdXJyZW50IHRpbWUgaW50byB0aGUgc3lzdGVtIHByb21wdCIsIlNlcmlhbGl6ZSB0b29scyBkZXRlcm1pbmlzdGljYWxseSJdLCJrIjoiTUN3eExETT0iLCJzZWN0aW9uIjoiQ2xhdWRlIEZlYXR1cmVzIiwiZGlmZmljdWx0eSI6ImFwcGxpY2F0aW9uIiwiZXhwbGFuYXRpb24iOiJTdGFibGUtZmlyc3QsIHZvbGF0aWxlLWxhc3QsIGRldGVybWluaXN0aWMgdG9vbCBvcmRlciBhbGwgcHJlc2VydmUgdGhlIGNhY2hlOyBhIGxpdmUgdGltZXN0YW1wIGluIHRoZSBzeXN0ZW0gcHJvbXB0IGludmFsaWRhdGVzIGl0IGV2ZXJ5IHJlcXVlc3QuIiwic291cmNlIjoiUnVsZXMgb2YgcHJvbXB0IGNhY2hpbmcifSx7InByb21wdCI6IldoYXQgZG9lcyB0aGUgY2l0YXRpb25zIGZlYXR1cmUgYWRkIHRvIGEgcmVzcG9uc2Ugb3ZlciBhIGRvY3VtZW50PyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIkEgY29zdCBlc3RpbWF0ZSIsIkNpdGVkIHRleHQgc3BhbnMgbGlua2VkIHRvIHNvdXJjZSBsb2NhdGlvbnMgaW4gdGhlIGRvY3VtZW50IiwiQSB0cmFuc2xhdGlvbiIsIkEgc3VtbWFyeSBvbmx5Il0sImsiOiJNUT09Iiwic2VjdGlvbiI6IkNsYXVkZSBGZWF0dXJlcyIsImRpZmZpY3VsdHkiOiJyZWNhbGwiLCJleHBsYW5hdGlvbiI6IkNpdGF0aW9ucyBzcGxpdCB0aGUgcmVzcG9uc2UgaW50byBibG9ja3MgY2FycnlpbmcgY2l0ZWRfdGV4dCBhbmQgc291cmNlIGxvY2F0aW9ucy4iLCJzb3VyY2UiOiJDaXRhdGlvbnMifSx7InByb21wdCI6IkhvdyBpcyBhIGJhc2U2NCBQREYgc3VwcGxpZWQgdG8gdGhlIE1lc3NhZ2VzIEFQST8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJBcyBhbiBpbWFnZSBibG9jayIsIkFzIGEgZG9jdW1lbnQgYmxvY2sgd2l0aCBhIGJhc2U2NCBzb3VyY2Ugb2YgbWVkaWFfdHlwZSBhcHBsaWNhdGlvbi9wZGYiLCJBcyBhIHRvb2wgcmVzdWx0IiwiQXMgYSBzeXN0ZW0gcHJvbXB0IGF0dGFjaG1lbnQiXSwiayI6Ik1RPT0iLCJzZWN0aW9uIjoiQ2xhdWRlIEZlYXR1cmVzIiwiZGlmZmljdWx0eSI6InJlY2FsbCIsImV4cGxhbmF0aW9uIjoiUERGcyBnbyBpbiBhIGRvY3VtZW50IGNvbnRlbnQgYmxvY2sgd2l0aCBhIGJhc2U2NCAob3IgZmlsZSkgc291cmNlLiIsInNvdXJjZSI6IlBERiBzdXBwb3J0In0seyJwcm9tcHQiOiJXaGF0IGRvZXMgTUNQIHN0YW5kIGZvcj8iLCJ0eXBlIjoic2luZ2xlIiwib3B0aW9ucyI6WyJNb2RlbCBDb250ZXh0IFByb3RvY29sIiwiTWFuYWdlZCBDb21wdXRlIFBsYXRmb3JtIiwiTXVsdGktQ2xhdWRlIFBpcGVsaW5lIiwiTWVzc2FnZSBDYWNoaW5nIFByb3RvY29sIl0sImsiOiJNQT09Iiwic2VjdGlvbiI6Ik1DUCIsImRpZmZpY3VsdHkiOiJyZWNhbGwiLCJleHBsYW5hdGlvbiI6Ik1DUCA9IE1vZGVsIENvbnRleHQgUHJvdG9jb2wg4oCUIGEgc3RhbmRhcmQgZm9yIGV4cG9zaW5nIHRvb2xzLCByZXNvdXJjZXMsIGFuZCBwcm9tcHRzLiIsInNvdXJjZSI6IkludHJvZHVjaW5nIE1DUCJ9LHsicHJvbXB0IjoiV2hpY2ggcHJpbWl0aXZlcyBjYW4gYW4gTUNQIHNlcnZlciBkZWZpbmU/IiwidHlwZSI6Im11bHRpIiwib3B0aW9ucyI6WyJUb29scyIsIlJlc291cmNlcyIsIlByb21wdHMiLCJHUFVzIl0sImsiOiJNQ3d4TERJPSIsInNlY3Rpb24iOiJNQ1AiLCJkaWZmaWN1bHR5IjoicmVjYWxsIiwiZXhwbGFuYXRpb24iOiJBbiBNQ1Agc2VydmVyIGNhbiBkZWZpbmUgdG9vbHMsIHJlc291cmNlcywgYW5kIHByb21wdHM7IHRoZSBjb3Vyc2UgYnVpbGRzIGVhY2guIiwic291cmNlIjoiTW9kZWwgQ29udGV4dCBQcm90b2NvbCJ9LHsicHJvbXB0IjoiV2hpY2ggYXJlIHdvcmtmbG93IHBhdHRlcm5zIHRhdWdodCBpbiB0aGUgY291cnNlIChhcyBkaXN0aW5jdCBmcm9tIG9wZW4tZW5kZWQgYWdlbnRzKT8iLCJ0eXBlIjoibXVsdGkiLCJvcHRpb25zIjpbIlBhcmFsbGVsaXphdGlvbiIsIkNoYWluaW5nIiwiUm91dGluZyIsIlJhbmRvbSBtb2RlbCBzd2FwcGluZyJdLCJrIjoiTUN3eExEST0iLCJzZWN0aW9uIjoiQWdlbnRzIGFuZCBXb3JrZmxvd3MiLCJkaWZmaWN1bHR5IjoiYXBwbGljYXRpb24iLCJleHBsYW5hdGlvbiI6IlBhcmFsbGVsaXphdGlvbiwgY2hhaW5pbmcsIGFuZCByb3V0aW5nIGFyZSB0aGUgd29ya2Zsb3cgcGF0dGVybnMgY292ZXJlZC4iLCJzb3VyY2UiOiJBZ2VudHMgYW5kIFdvcmtmbG93cyJ9LHsicHJvbXB0IjoiV2hhdCBiZXN0IGRpc3Rpbmd1aXNoZXMgYSB3b3JrZmxvdyBmcm9tIGFuIGFnZW50PyIsInR5cGUiOiJzaW5nbGUiLCJvcHRpb25zIjpbIldvcmtmbG93cyB1c2UgY29kZS1jb250cm9sbGVkIGxvZ2ljOyBhZ2VudHMgbGV0IHRoZSBtb2RlbCBkcml2ZSBvcGVuLWVuZGVkIHRvb2wgdXNlIiwiV29ya2Zsb3dzIGFyZSBhbHdheXMgY2hlYXBlciIsIkFnZW50cyBjYW5ub3QgdXNlIHRvb2xzIiwiV29ya2Zsb3dzIHJlcXVpcmUgTUNQIl0sImsiOiJNQT09Iiwic2VjdGlvbiI6IkFnZW50cyBhbmQgV29ya2Zsb3dzIiwiZGlmZmljdWx0eSI6ImFuYWx5c2lzIiwiZXhwbGFuYXRpb24iOiJXb3JrZmxvd3Mgb3JjaGVzdHJhdGUgc3RlcHMgaW4gY29kZTsgYWdlbnRzIGhhbmQgY29udHJvbCBmbG93IHRvIHRoZSBtb2RlbCBmb3Igb3Blbi1lbmRlZCwgbW9kZWwtZHJpdmVuIGV4cGxvcmF0aW9uLiIsInNvdXJjZSI6IldvcmtmbG93cyB2cyBhZ2VudHMifV19</script>
+<script>
+/* =========================================================================
+   CORE (pure) — no DOM. scripts/selftest.mjs slices this region and tests it.
+   Keep every function here side-effect free and dependency free.
+   ========================================================================= */
+/*=== CORE-START ===*/
+function mulberry32(seed){
+  let a = seed >>> 0;
+  return function(){
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function seedFromString(str){
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h >>> 0;
+}
+/** Fisher-Yates on a copy. Deterministic for a given rng. */
+function shuffle(arr, rng){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(rng() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+/** Build a shuffled question order + a shuffled option order per question. */
+function buildLayout(questions, seed, opts){
+  const o = opts || {};
+  const rng = mulberry32(seed);
+  const idx = questions.map((_, i) => i);
+  const order = o.shuffleQuestions === false ? idx : shuffle(idx, rng);
+  const optOrder = {};
+  for (const qi of order){
+    const q = questions[qi];
+    const positions = q.options.map((_, i) => i);
+    optOrder[qi] = (o.shuffleOptions === false || q.keepOptionOrder) ? positions : shuffle(positions, rng);
+  }
+  return { seed: seed, order: order, optOrder: optOrder };
+}
+/** answer key is stored base64("0,2") so casual View-Source does not spoil it. */
+function decodeKey(k, b64decode){
+  const raw = b64decode(k);
+  if (raw === '') return [];
+  return raw.split(',').map(Number).filter(n => Number.isInteger(n));
+}
+/** Exact-set match, or fractional partial credit for multi-select when enabled. */
+function gradeOne(question, key, selected, partialCredit){
+  const sel = Array.from(new Set(selected || [])).sort((a,b)=>a-b);
+  const cor = Array.from(new Set(key || [])).sort((a,b)=>a-b);
+  const hits = sel.filter(i => cor.includes(i)).length;
+  const misses = sel.filter(i => !cor.includes(i)).length;
+  const exact = sel.length === cor.length && misses === 0;
+  let credit = exact ? 1 : 0;
+  if (!exact && partialCredit && question.type === 'multi' && cor.length > 0){
+    credit = Math.max(0, (hits - misses) / cor.length);
+  }
+  return { correct: exact, credit: credit, hits: hits, misses: misses, answered: sel.length > 0 };
+}
+function gradeAll(questions, keys, responses, cfg){
+  const c = cfg || {};
+  const passScore = typeof c.passScore === 'number' ? c.passScore : 80;
+  const per = questions.map((q, i) => {
+    const g = gradeOne(q, keys[i], responses[i] || [], !!c.partialCredit);
+    return Object.assign({ index: i, section: q.section || 'General' }, g);
+  });
+  const earned = per.reduce((s, r) => s + r.credit, 0);
+  const total = questions.length;
+  const pct = total === 0 ? 0 : Math.round((earned / total) * 1000) / 10;
+  const sections = {};
+  for (const r of per){
+    const s = sections[r.section] || (sections[r.section] = { section: r.section, earned: 0, total: 0 });
+    s.earned += r.credit; s.total += 1;
+  }
+  const bySection = Object.values(sections).map(s =>
+    Object.assign({}, s, { pct: Math.round((s.earned / s.total) * 1000) / 10 })
+  ).sort((a, b) => a.pct - b.pct);
+  return {
+    per: per,
+    correctCount: per.filter(r => r.correct).length,
+    unanswered: per.filter(r => !r.answered).length,
+    earned: Math.round(earned * 100) / 100,
+    total: total,
+    pct: pct,
+    passScore: passScore,
+    passed: total > 0 && pct >= passScore,
+    bySection: bySection,
+    weakSections: bySection.filter(s => s.pct < passScore).map(s => s.section)
+  };
+}
+function fmtClock(totalSeconds){
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const m = Math.floor(s / 60), sec = s % 60;
+  if (m < 60) return m + ':' + String(sec).padStart(2, '0');
+  const h = Math.floor(m / 60);
+  return h + ':' + String(m % 60).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+}
+function letter(i){ return String.fromCharCode(65 + i); }
+/** Pragmatic email check: non-empty local part, one @, a dotted domain, no spaces.
+    Deliberately not RFC-5322-exhaustive — catches typos, not every legal address. */
+function isValidEmail(s){
+  if (typeof s !== 'string') return false;
+  var e = s.trim();
+  if (e.length < 6 || e.length > 254 || /\s/.test(e)) return false;
+  return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(e);
+}
+/** Stable 8-hex identity for a question prompt (FNV-1a over trimmed/collapsed text).
+    Survives source reordering; changes when the prompt is edited. Not a UUID. */
+function promptHash(prompt){
+  const norm = String(prompt == null ? '' : prompt).trim().toLowerCase().replace(/\s+/g, ' ');
+  return ('0000000' + (seedFromString(norm) >>> 0).toString(16)).slice(-8);
+}
+/** Enriched result payload — shared by the Copy button and the submit hook so the
+    two can never drift. `include`: "summary" = today's clipboard shape; "full" adds
+    perQuestion[]. Never emits correct-answer indices. Pure: caller supplies context. */
+function buildResultPayload(r, ctx){
+  const c = ctx || {};
+  const include = c.include === 'full' ? 'full' : 'summary';
+  const questionAt = c.questionAt || function(){ return {}; };
+  const payload = {
+    schema: 'quiz-result/2',
+    course: c.course, name: c.name || '', email: c.email || '', role: c.role || '',
+    generatedAt: c.generatedAt, takenAt: c.takenAt,
+    score: r.pct, passScore: r.passScore, passed: r.passed,
+    correct: r.correctCount, total: r.total, unanswered: r.unanswered,
+    earned: r.earned, elapsedSeconds: r.elapsed, seed: r.seed,
+    attempt: { mode: c.mode || 'full', retryWrongOnly: !!c.retryWrongOnly },
+    bySection: (r.bySection || []).map(function(s){ return { section: s.section, pct: s.pct }; }),
+    missed: r.per.filter(function(p){ return !p.correct; })
+                 .map(function(p){ return (questionAt(r.sourceIdx[p.index]) || {}).prompt; })
+  };
+  if (include === 'full'){
+    payload.perQuestion = r.per.map(function(p){
+      const q = questionAt(r.sourceIdx[p.index]) || {};
+      return {
+        sourceIndex: r.sourceIdx[p.index],
+        promptHash: promptHash(q.prompt),
+        section: p.section, type: q.type, prompt: q.prompt,
+        answered: p.answered, correct: p.correct, credit: p.credit,
+        hits: p.hits, misses: p.misses,
+        selectedCount: p.hits + p.misses
+      };
+    });
+  }
+  return payload;
+}
+/*=== CORE-END ===*/
+
+/* =========================================================================
+   APP — DOM wiring
+   ========================================================================= */
+(function(){
+  'use strict';
+  const $ = function(sel){ return document.querySelector(sel); };
+  const b64d = function(s){ return decodeURIComponent(escape(atob(s))); };
+
+  // ---- load payload (base64 JSON when built with --obfuscate) -------------
+  let DATA;
+  try {
+    const raw = $('#quizData').textContent.trim();
+    DATA = JSON.parse(raw.charAt(0) === '{' ? raw : b64d(raw));
+  } catch (e) {
+    document.body.innerHTML = '<div class="wrap"><div class="card"><h2>Quiz data failed to load</h2>' +
+      '<p class="muted">' + String(e) + '</p></div></div>';
+    return;
+  }
+  const CFG = Object.assign({
+    passScore: 80, timeLimitMin: null, partialCredit: false,
+    shuffleQuestions: true, shuffleOptions: true, showTimer: true, allowRetry: true,
+    requireEmail: false, homeUrl: ''
+  }, DATA.config || {});
+  const QS = DATA.questions || [];
+  const KEYS = QS.map(function(q){ return decodeKey(q.k, b64d); });
+  const SLUG = (DATA.course || 'quiz').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const STORE = 'quiz:' + SLUG + ':v1';
+  const TAKER_STORE = 'quiz:taker';        // {name,email,role} shared across all quizzes on this origin
+  const THEME_STORE = 'quiz-theme';
+  const ROLES = ['Developer', 'Quality Assurance', 'Business Analyst'];
+
+  // ---- taker profile (persisted once per browser) ------------------------
+  function getTaker(){
+    try {
+      const raw = localStorage.getItem(TAKER_STORE);
+      const t = raw ? JSON.parse(raw) : {};
+      return { name: t.name || '', email: t.email || '', role: t.role || '' };
+    } catch (e){ return { name: '', email: '', role: '' }; }
+  }
+  function setTaker(t){
+    try { localStorage.setItem(TAKER_STORE, JSON.stringify(t)); } catch (e){}
+  }
+  function clearTaker(){
+    try { localStorage.removeItem(TAKER_STORE); } catch (e){}
+  }
+  function getEmail(){ return getTaker().email; }   // back-comp for payloadCtx
+  function takerValid(t){
+    return isValidEmail(t.email) && String(t.name).trim().length >= 2 && ROLES.indexOf(t.role) >= 0;
+  }
+
+  // ---- state -------------------------------------------------------------
+  let S = null;      // {seed, order, optOrder, responses, flags, idx, startedAt, elapsed, subset}
+  let RESULT = null;
+  let tick = null;
+  let filter = 'all';
+
+  // ---- helpers -----------------------------------------------------------
+  function show(id){
+    ['#screenIntro','#screenQuiz','#screenReview','#screenResults'].forEach(function(s){
+      $(s).classList.toggle('hide', s !== id);
+    });
+  }
+  function toast(msg){
+    const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+    setTimeout(function(){ t.classList.remove('on'); }, 1900);
+  }
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+  /** minimal inline markdown: `code`, **bold**, *italic* */
+  function md(s){
+    return esc(s)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  }
+  function activeList(){ return S.subset || S.order; }
+  function typeLabel(q){
+    return q.type === 'multi' ? 'Select all that apply' : q.type === 'truefalse' ? 'True / false' : 'Single answer';
+  }
+  function save(){
+    if (!S) return;
+    try { localStorage.setItem(STORE, JSON.stringify({ v: 1, s: S })); } catch (e) {}
+  }
+  function clearSave(){ try { localStorage.removeItem(STORE); } catch (e) {} }
+  function loadSave(){
+    try {
+      const raw = localStorage.getItem(STORE);
+      if (!raw) return null;
+      const p = JSON.parse(raw);
+      return p && p.s && Array.isArray(p.s.order) && p.s.order.length === QS.length ? p.s : null;
+    } catch (e) { return null; }
+  }
+
+  // ---- intro -------------------------------------------------------------
+  function renderIntro(){
+    $('#eyebrow').textContent = DATA.eyebrow || 'Knowledge check';
+    $('#courseName').textContent = DATA.course || 'Course quiz';
+    document.title = (DATA.course || 'Course') + ' — Knowledge Check';
+    $('#introBlurb').textContent = DATA.blurb ||
+      ('This check covers the whole course. You need ' + CFG.passScore + '% to pass. ' +
+       'You can review and change answers before submitting.');
+    const secs = Array.from(new Set(QS.map(function(q){ return q.section || 'General'; })));
+    const bits = [
+      QS.length + ' questions',
+      'Pass mark ' + CFG.passScore + '%',
+      secs.length + ' topics',
+      CFG.timeLimitMin ? CFG.timeLimitMin + ' min limit' : 'No time limit'
+    ];
+    if (CFG.partialCredit) bits.push('Partial credit on multi-select');
+    $('#introStats').innerHTML = bits.map(function(b){ return '<span class="chip">' + esc(b) + '</span>'; }).join('');
+    $('#resumeBtn').classList.toggle('hide', !loadSave());
+    renderEmailGate();
+    $('#footNote').textContent = 'Generated for "' + (DATA.course || '') + '"' +
+      (DATA.generatedAt ? ' · ' + DATA.generatedAt : '') +
+      ' · self-contained single file, works offline.';
+  }
+
+  // Reflect email state on the intro: gate shown when required + missing/invalid.
+  function renderEmailGate(){
+    if (!CFG.requireEmail){
+      $('#emailGate').classList.add('hide');
+      $('#changeEmailBtn').classList.add('hide');
+      return;
+    }
+    const t = getTaker();
+    const have = takerValid(t);
+    $('#emailGate').classList.toggle('hide', have);           // hide once we have full valid details
+    $('#changeEmailBtn').classList.toggle('hide', !have);     // offer to change saved details
+    if (!have){
+      $('#nameInput').value = t.name || '';
+      $('#emailInput').value = t.email || '';
+      $('#roleInput').value = ROLES.indexOf(t.role) >= 0 ? t.role : '';
+      $('#gateErr').textContent = '';
+    }
+  }
+  // Enforce the gate at Start. Returns true if OK to proceed.
+  function emailGateOk(){
+    if (!CFG.requireEmail) return true;
+    if (takerValid(getTaker())) return true;
+    const name = ($('#nameInput').value || '').trim();
+    const email = ($('#emailInput').value || '').trim();
+    const role = $('#roleInput').value || '';
+    if (name.length < 2){ $('#gateErr').textContent = 'Please enter your name.'; $('#nameInput').focus(); return false; }
+    if (!isValidEmail(email)){ $('#gateErr').textContent = email ? 'That doesn’t look like a valid email.' : 'Please enter your email.'; $('#emailInput').focus(); return false; }
+    if (ROLES.indexOf(role) < 0){ $('#gateErr').textContent = 'Please select your role.'; $('#roleInput').focus(); return false; }
+    setTaker({ name: name, email: email, role: role });
+    $('#gateErr').textContent = '';
+    renderEmailGate();
+    return true;
+  }
+
+  // ---- start / restart ---------------------------------------------------
+  function urlSeed(){
+    const m = /[?&]seed=([^&]+)/.exec(location.search);
+    if (!m) return null;
+    const v = decodeURIComponent(m[1]);
+    return /^\d+$/.test(v) ? (Number(v) >>> 0) : seedFromString(v);
+  }
+  function newSeed(){
+    const u = urlSeed();
+    if (u !== null) return u;
+    if (window.crypto && crypto.getRandomValues) return crypto.getRandomValues(new Uint32Array(1))[0];
+    return seedFromString(String(performance.now()) + QS.length);
+  }
+  function start(subsetOrder){
+    const layout = buildLayout(QS, newSeed(), CFG);
+    S = {
+      seed: layout.seed, order: layout.order, optOrder: layout.optOrder,
+      responses: {}, flags: {}, idx: 0, startedAt: Date.now(), elapsed: 0,
+      subset: subsetOrder || null
+    };
+    RESULT = null;
+    show('#screenQuiz'); startTimer(); renderQ(); save();
+  }
+  function resume(){
+    S = loadSave(); if (!S) return start();
+    S.startedAt = Date.now() - (S.elapsed || 0) * 1000;
+    RESULT = null; show('#screenQuiz'); startTimer(); renderQ();
+  }
+
+  // ---- timer -------------------------------------------------------------
+  function startTimer(){
+    if (tick) clearInterval(tick);
+    if (!CFG.showTimer && !CFG.timeLimitMin){ $('#timerChip').classList.add('hide'); return; }
+    $('#timerChip').classList.remove('hide');
+    const paint = function(){
+      S.elapsed = Math.floor((Date.now() - S.startedAt) / 1000);
+      if (CFG.timeLimitMin){
+        const left = CFG.timeLimitMin * 60 - S.elapsed;
+        $('#timer').textContent = fmtClock(left);
+        $('#timerChip').style.color = left <= 60 ? 'var(--bad)' : '';
+        if (left <= 0){ clearInterval(tick); toast('Time is up — grading now'); grade(); return; }
+      } else {
+        $('#timer').textContent = fmtClock(S.elapsed);
+      }
+    };
+    paint();
+    tick = setInterval(paint, 1000);
+  }
+  function stopTimer(){ if (tick){ clearInterval(tick); tick = null; } }
+
+  // ---- question render ---------------------------------------------------
+  function renderQ(){
+    const list = activeList();
+    S.idx = Math.max(0, Math.min(S.idx, list.length - 1));
+    const qi = list[S.idx];
+    const q = QS[qi];
+    const pct = Math.round(((S.idx) / list.length) * 100);
+    $('#prog').setAttribute('aria-valuenow', String(pct));
+    $('#prog').firstElementChild.style.width = pct + '%';
+    $('#countChip').classList.remove('hide');
+    $('#countChip').textContent = 'Question ' + (S.idx + 1) + ' of ' + list.length;
+
+    $('#qMeta').innerHTML = [
+      '<span class="tag">' + esc(typeLabel(q)) + '</span>',
+      q.section ? '<span class="tag">' + esc(q.section) + '</span>' : '',
+      q.difficulty ? '<span class="tag">' + esc(q.difficulty) + '</span>' : ''
+    ].join('');
+    $('#qPrompt').innerHTML = md(q.prompt);
+
+    const multi = q.type === 'multi';
+    const chosen = S.responses[qi] || [];
+    $('#qOpts').innerHTML = S.optOrder[qi].map(function(oi, pos){
+      return '<label class="opt">' +
+        '<input type="' + (multi ? 'checkbox' : 'radio') + '" name="q' + qi + '" value="' + oi + '"' +
+        (chosen.indexOf(oi) > -1 ? ' checked' : '') + '>' +
+        '<span class="key">' + letter(pos) + '</span>' +
+        '<span class="txt">' + md(q.options[oi]) + '</span>' +
+      '</label>';
+    }).join('');
+
+    Array.prototype.forEach.call($('#qOpts').querySelectorAll('input'), function(inp){
+      inp.addEventListener('change', function(){
+        const vals = Array.prototype.map.call(
+          $('#qOpts').querySelectorAll('input:checked'), function(x){ return Number(x.value); });
+        S.responses[qi] = vals;
+        save(); renderDots();
+        $('#nextBtn').textContent = (S.idx === list.length - 1) ? 'Review answers →' : 'Next →';
+      });
+    });
+
+    $('#flagBtn').textContent = S.flags[qi] ? '★ Flagged' : '☆ Flag';
+    $('#flagBtn').setAttribute('aria-pressed', S.flags[qi] ? 'true' : 'false');
+    $('#prevBtn').disabled = S.idx === 0;
+    $('#nextBtn').textContent = (S.idx === list.length - 1) ? 'Review answers →' : 'Next →';
+    renderDots();
+    const first = $('#qOpts').querySelector('input');
+    if (first) first.focus({ preventScroll: false });
+  }
+  function renderDots(){
+    const list = activeList();
+    $('#dots').innerHTML = list.map(function(qi, i){
+      const answered = (S.responses[qi] || []).length > 0;
+      const state = i === S.idx ? 'current' : answered ? 'answered' : 'todo';
+      return '<button class="dot" type="button" data-i="' + i + '" data-state="' + state + '"' +
+        ' data-flag="' + (S.flags[qi] ? 1 : 0) + '"' +
+        ' aria-label="Question ' + (i + 1) + (answered ? ', answered' : ', not answered') + '">' + (i + 1) + '</button>';
+    }).join('');
+  }
+
+  // ---- review ------------------------------------------------------------
+  function renderReview(){
+    const list = activeList();
+    const blank = list.filter(function(qi){ return (S.responses[qi] || []).length === 0; }).length;
+    $('#reviewBlurb').textContent = blank
+      ? blank + ' question' + (blank > 1 ? 's' : '') + ' still blank — unanswered counts as incorrect.'
+      : 'All questions answered. Click any row to jump back.';
+    $('#revList').innerHTML = list.map(function(qi, i){
+      const answered = (S.responses[qi] || []).length > 0;
+      return '<button class="revrow" type="button" data-i="' + i + '">' +
+        '<span class="n">' + (i + 1) + '</span>' +
+        '<span class="q">' + md(QS[qi].prompt) + '</span>' +
+        (S.flags[qi] ? '<span class="st">★</span>' : '') +
+        '<span class="st ' + (answered ? 'answered' : 'blank') + '">' + (answered ? 'Answered' : 'Blank') + '</span>' +
+      '</button>';
+    }).join('');
+    show('#screenReview');
+    $('#submitBtn').focus();
+  }
+
+  // ---- grading + results -------------------------------------------------
+  function grade(){
+    stopTimer();
+    const list = activeList();
+    const qs = list.map(function(qi){ return QS[qi]; });
+    const keys = list.map(function(qi){ return KEYS[qi]; });
+    const resp = list.map(function(qi){ return S.responses[qi] || []; });
+    const r = gradeAll(qs, keys, resp, CFG);
+    r.sourceIdx = list.slice();
+    r.seed = S.seed; r.elapsed = S.elapsed;
+    RESULT = r;
+    renderResults();     // verdict never waits on the POST
+    clearSave();
+    submitResult(r);     // fire-and-forget; no-op unless CFG.submit.url set
+  }
+  // shared payload context for both the Copy button and the submit hook
+  function payloadCtx(extra){
+    return Object.assign({
+      course: DATA.course, email: getTaker().email, name: getTaker().name, role: getTaker().role,
+      generatedAt: DATA.generatedAt, takenAt: new Date().toISOString(),
+      mode: S && S.subset ? 'retryWrong' : 'full', retryWrongOnly: !!(S && S.subset),
+      questionAt: function(qi){ return QS[qi]; }
+    }, extra || {});
+  }
+  // ---- submit hook (SP2) -------------------------------------------------
+  function submitResult(r){
+    const sc = CFG.submit;
+    if (!sc || !sc.url || sc.when === 'manual') return;
+    if (sc.when === 'onGradeOnce'){
+      const mark = 'quiz:submitted:' + SLUG + ':' + r.seed;
+      try { if (localStorage.getItem(mark)) return; localStorage.setItem(mark, '1'); } catch (e){}
+    }
+    postResult(r, sc);
+  }
+  function postResult(r, sc){
+    const include = sc.include === 'summary' ? 'summary' : 'full';
+    const payload = buildResultPayload(r, payloadCtx({ include: include }));
+    const body = JSON.stringify(payload);
+    const url = sc.url, method = (sc.method === 'PUT' ? 'PUT' : 'POST');
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, sc.headers || {});
+    const maxRetry = Math.min(3, Math.max(0, sc.retry | 0));
+    let attempt = 0;
+    function attemptPost(){
+      fetch(url, { method: method, headers: headers, body: body, keepalive: true })
+        .then(function(res){
+          if (res.ok){ toast('Result submitted'); return; }
+          if (res.status >= 400 && res.status < 500){ toast('Submit rejected (' + res.status + ')'); return; }
+          retry();
+        })
+        .catch(retry);
+    }
+    function retry(){
+      if (attempt++ < maxRetry){ setTimeout(attemptPost, 400 * attempt); }
+      else { toast('Submit failed — see console'); try { console.log('quiz submit payload:', body); } catch (e){} }
+    }
+    attemptPost();
+    return payload;
+  }
+  function renderResults(){
+    const r = RESULT;
+    $('#countChip').classList.add('hide');
+    $('#verdictCard').className = 'card ' + (r.passed ? 'pass' : 'fail');
+    $('#scorePct').textContent = r.pct + '%';
+    $('#scoreRaw').textContent = r.correctCount + ' of ' + r.total;
+    const arc = $('#ringArc'), C = 2 * Math.PI * 57;
+    arc.setAttribute('stroke-dasharray', String(C));
+    arc.setAttribute('stroke-dashoffset', String(C * (1 - Math.min(1, r.pct / 100))));
+    arc.setAttribute('stroke', r.passed ? 'var(--ok)' : 'var(--bad)');
+    $('#verdictText').innerHTML = r.passed ? '✓ Test passed' : '✕ Test failed';
+    $('#verdictSub').textContent = r.passed
+      ? 'You scored ' + r.pct + '% against a ' + r.passScore + '% pass mark. Nice work.'
+      : 'You scored ' + r.pct + '%; ' + r.passScore + '% is required. Review the answer key below, then retake.';
+    const stats = [
+      'Time ' + fmtClock(r.elapsed),
+      r.unanswered + ' unanswered',
+      'Seed ' + r.seed
+    ];
+    if (r.weakSections.length) stats.unshift('Weakest: ' + r.weakSections[0]);
+    $('#resultStats').innerHTML = stats.map(function(s){ return '<span class="chip">' + esc(s) + '</span>'; }).join('');
+
+    $('#breakdownCard').classList.toggle('hide', r.bySection.length < 2);
+    $('#bars').innerHTML = r.bySection.map(function(s){
+      return '<div class="bar" data-weak="' + (s.pct < r.passScore ? 1 : 0) + '">' +
+        '<span class="lbl">' + esc(s.section) + '</span>' +
+        '<span class="pct">' + s.pct + '% <span class="muted">(' + Math.round(s.earned * 10) / 10 + '/' + s.total + ')</span></span>' +
+        '<span class="track"><i style="width:' + s.pct + '%"></i></span></div>';
+    }).join('');
+
+    $('#retryWrongBtn').classList.toggle('hide', r.correctCount === r.total || CFG.allowRetry === false);
+    $('#retakeBtn').classList.toggle('hide', CFG.allowRetry === false);
+    renderKey();
+    show('#screenResults');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (r.passed) confetti();
+    $('#verdictText').setAttribute('tabindex', '-1');
+    $('#verdictText').focus();
+  }
+  function renderKey(){
+    const r = RESULT;
+    $('#keyList').innerHTML = r.per.map(function(row, i){
+      if (filter === 'wrong' && row.correct) return '';
+      if (filter === 'right' && !row.correct) return '';
+      const qi = r.sourceIdx[i], q = QS[qi], key = KEYS[qi], sel = S.responses[qi] || [];
+      const opts = S.optOrder[qi].map(function(oi, pos){
+        const isCor = key.indexOf(oi) > -1, isSel = sel.indexOf(oi) > -1;
+        const cls = isCor ? 'opt correct' : (isSel ? 'opt chosen-wrong' : 'opt');
+        const badge = isCor ? '<span class="tag" style="color:var(--ok)">correct</span>'
+                    : (isSel ? '<span class="tag" style="color:var(--bad)">your pick</span>' : '');
+        return '<div class="' + cls + '"><span class="key">' + letter(pos) + '</span>' +
+               '<span class="txt">' + md(q.options[oi]) + ' ' + badge + '</span></div>';
+      }).join('');
+      const partial = !row.correct && row.credit > 0 ? ' · partial credit ' + Math.round(row.credit * 100) + '%' : '';
+      return '<details class="qr" data-ok="' + (row.correct ? 1 : 0) + '"' + (row.correct ? '' : ' open') + '>' +
+        '<summary><span class="mark">' + (row.correct ? '✓' : '✕') + '</span>' +
+        '<span class="sumtxt">' + (i + 1) + '. ' + md(q.prompt) +
+        '<span class="tag" style="margin-left:8px">' + esc(q.section || 'General') + '</span>' +
+        (row.answered ? '' : '<span class="tag" style="color:var(--warn)">unanswered</span>') +
+        esc(partial) + '</span></summary>' +
+        '<div class="body"><div class="opts">' + opts + '</div>' +
+        (q.explanation ? '<div class="explain">' + md(q.explanation) +
+          (q.source ? '<span class="src">Source: ' + esc(q.source) + '</span>' : '') + '</div>' : '') +
+        '</div></details>';
+    }).join('') || '<p class="muted">Nothing matches this filter.</p>';
+  }
+
+  // ---- confetti (skipped when reduced motion) ----------------------------
+  function confetti(){
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cv = $('#confetti'), ctx = cv.getContext && cv.getContext('2d');
+    if (!ctx) return;
+    cv.classList.remove('hide');
+    cv.width = innerWidth; cv.height = innerHeight;
+    const colors = ['#6b4df6','#12805c','#f6c74d','#3ac','#ff7b93'];
+    const bits = Array.from({ length: 110 }, function(_, i){
+      return { x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .5,
+               r: 3 + Math.random() * 5, vy: 1.6 + Math.random() * 2.6, vx: -1 + Math.random() * 2,
+               a: Math.random() * Math.PI, va: -.12 + Math.random() * .24, c: colors[i % colors.length] };
+    });
+    let frames = 0;
+    (function loop(){
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      bits.forEach(function(b){
+        b.x += b.vx; b.y += b.vy; b.a += b.va;
+        ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.a);
+        ctx.fillStyle = b.c; ctx.fillRect(-b.r, -b.r * .4, b.r * 2, b.r * .8); ctx.restore();
+      });
+      if (++frames < 210) requestAnimationFrame(loop);
+      else { ctx.clearRect(0, 0, cv.width, cv.height); cv.classList.add('hide'); }
+    })();
+  }
+
+  // ---- theme -------------------------------------------------------------
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem(THEME_STORE, t); } catch (e) {}
+    $('#themeBtn').textContent = t === 'dark' ? '☾' : t === 'light' ? '☀' : '◐';
+  }
+  (function initTheme(){
+    let t = 'auto';
+    try { t = localStorage.getItem(THEME_STORE) || 'auto'; } catch (e) {}
+    applyTheme(t);
+  })();
+
+  // ---- events ------------------------------------------------------------
+  $('#themeBtn').addEventListener('click', function(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    applyTheme(cur === 'auto' ? 'light' : cur === 'light' ? 'dark' : 'auto');
+  });
+  $('#startBtn').addEventListener('click', function(){ if (!emailGateOk()) return; clearSave(); start(); });
+  $('#resumeBtn').addEventListener('click', function(){ if (!emailGateOk()) return; resume(); });
+  $('#changeEmailBtn').addEventListener('click', function(){
+    clearTaker(); renderEmailGate(); $('#nameInput').focus();
+  });
+  ['#nameInput', '#emailInput'].forEach(function(sel){
+    $(sel).addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); $('#startBtn').click(); }
+    });
+  });
+  $('#prevBtn').addEventListener('click', function(){ if (S.idx > 0){ S.idx--; renderQ(); save(); } });
+  $('#nextBtn').addEventListener('click', function(){
+    if (S.idx < activeList().length - 1){ S.idx++; renderQ(); save(); } else renderReview();
+  });
+  $('#clearBtn').addEventListener('click', function(){
+    const qi = activeList()[S.idx]; delete S.responses[qi]; renderQ(); save();
+  });
+  $('#flagBtn').addEventListener('click', function(){
+    const qi = activeList()[S.idx]; S.flags[qi] = !S.flags[qi]; renderQ(); save();
+  });
+  $('#dots').addEventListener('click', function(e){
+    const b = e.target.closest('.dot'); if (!b) return;
+    S.idx = Number(b.dataset.i); renderQ(); save();
+  });
+  $('#revList').addEventListener('click', function(e){
+    const b = e.target.closest('.revrow'); if (!b) return;
+    S.idx = Number(b.dataset.i); show('#screenQuiz'); renderQ();
+  });
+  $('#backToQuizBtn').addEventListener('click', function(){ show('#screenQuiz'); renderQ(); });
+  $('#submitBtn').addEventListener('click', function(){
+    const blank = activeList().filter(function(qi){ return (S.responses[qi] || []).length === 0; }).length;
+    if (blank && !confirm(blank + ' question' + (blank > 1 ? 's are' : ' is') + ' unanswered and will be marked wrong. Submit anyway?')) return;
+    grade();
+  });
+  $('#retakeBtn').addEventListener('click', function(){ start(); });
+  $('#retryWrongBtn').addEventListener('click', function(){
+    const wrong = RESULT.per.filter(function(p){ return !p.correct; }).map(function(p){ return RESULT.sourceIdx[p.index]; });
+    const layout = buildLayout(QS, newSeed(), CFG);
+    S = { seed: layout.seed, order: layout.order, optOrder: layout.optOrder, responses: {}, flags: {},
+          idx: 0, startedAt: Date.now(), elapsed: 0, subset: shuffle(wrong, mulberry32(layout.seed)) };
+    RESULT = null; show('#screenQuiz'); startTimer(); renderQ();
+    toast('Retrying ' + S.subset.length + ' missed question' + (S.subset.length > 1 ? 's' : ''));
+  });
+  $('#copyBtn').addEventListener('click', function(){
+    const r = RESULT;
+    const include = (CFG.submit && CFG.submit.include === 'full') ? 'full' : 'summary';
+    const payload = buildResultPayload(r, payloadCtx({ include: include }));
+    const text = JSON.stringify(payload, null, 2);
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(function(){ toast('Result JSON copied'); },
+      function(){ toast('Copy blocked — see console'); console.log(text); });
+    else { console.log(text); toast('Result JSON in console'); }
+  });
+  $('#printBtn').addEventListener('click', function(){ window.print(); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-filter]'), function(b){
+    b.addEventListener('click', function(){
+      filter = b.dataset.filter;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-filter]'), function(o){
+        o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+      });
+      renderKey();
+    });
+  });
+  $('#expandBtn').addEventListener('click', function(){
+    const list = document.querySelectorAll('#keyList details');
+    const openAll = Array.prototype.some.call(list, function(d){ return !d.open; });
+    Array.prototype.forEach.call(list, function(d){ d.open = openAll; });
+    $('#expandBtn').textContent = openAll ? 'Collapse all' : 'Expand all';
+  });
+  document.addEventListener('keydown', function(e){
+    if ($('#screenQuiz').classList.contains('hide')) return;
+    if (e.target.tagName === 'INPUT' && e.key === ' ') return;
+    if (e.key >= '1' && e.key <= '9'){
+      const inputs = $('#qOpts').querySelectorAll('input');
+      const t = inputs[Number(e.key) - 1];
+      if (t){ t.checked = t.type === 'checkbox' ? !t.checked : true; t.dispatchEvent(new Event('change', { bubbles: true })); e.preventDefault(); }
+    } else if (e.key === 'ArrowRight'){ $('#nextBtn').click(); }
+    else if (e.key === 'ArrowLeft'){ if (!$('#prevBtn').disabled) $('#prevBtn').click(); }
+    else if (e.key === 'Enter'){ $('#nextBtn').click(); }
+    else if (e.key === 'f' || e.key === 'F'){ $('#flagBtn').click(); }
+  });
+  window.addEventListener('beforeunload', function(e){
+    if (S && !RESULT && Object.keys(S.responses).length){ save(); e.preventDefault(); e.returnValue = ''; }
+  });
+
+  // home / all-quizzes link (only when a homeUrl is configured)
+  (function initHome(){
+    if (!CFG.homeUrl){ $('#homeLink').classList.add('hide'); $('#resultsHomeBtn').classList.add('hide'); return; }
+    $('#homeLink').setAttribute('href', CFG.homeUrl);
+    $('#homeLink').classList.remove('hide');
+    $('#resultsHomeBtn').setAttribute('href', CFG.homeUrl);
+    $('#resultsHomeBtn').classList.remove('hide');
+    $('#homeLink').addEventListener('click', function(e){
+      // warn if leaving mid-attempt with unsaved answers
+      if (S && !RESULT && Object.keys(S.responses).length){
+        if (!confirm('Leave this quiz and return to all quizzes? Your progress is saved in this browser.')){
+          e.preventDefault();
+        }
+      }
+    });
+  })();
+
+  renderIntro();
+  // expose for debugging / automated checks
+  window.__quiz = { get state(){ return S; }, get result(){ return RESULT; }, data: DATA, keys: KEYS,
+                    submit: function(){ return RESULT ? postResult(RESULT, CFG.submit || {}) : null; },
+                    buildPayload: function(include){ return RESULT ? buildResultPayload(RESULT, payloadCtx({ include: include })) : null; },
+                    core: { mulberry32: mulberry32, shuffle: shuffle, buildLayout: buildLayout, gradeAll: gradeAll,
+                            promptHash: promptHash, buildResultPayload: buildResultPayload } };
+})();
+</script>
+</body>
+</html>
