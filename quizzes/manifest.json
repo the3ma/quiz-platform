@@ -5,8 +5,8 @@
       "path": "quizzes/claude-api/",
       "course": "Building with the Claude API",
       "blurb": "30 questions across the course: API access, prompt evaluation, prompt engineering, tool use, RAG, Claude features, MCP, and agent workflows. Grounded in the course curriculum and current Anthropic API behavior.",
-      "questions": 31,
-      "topics": 9,
+      "questions": 38,
+      "topics": 11,
       "passScore": 80
     },
     {
