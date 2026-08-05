@@ -1,6 +1,15 @@
 {
   "quizzes": [
     {
+      "slug": "certification",
+      "path": "quizzes/certification/",
+      "course": "Anthropic Certification Prep — Comprehensive",
+      "blurb": "Comprehensive practice exam for the Anthropic developer certification, combining all three courses: Building with the Claude API, Model Context Protocol, and Agent Skills. Every course section is represented. Pass mark is set high (85%) for certification readiness.",
+      "questions": 71,
+      "topics": 21,
+      "passScore": 85
+    },
+    {
       "slug": "claude-api",
       "path": "quizzes/claude-api/",
       "course": "Building with the Claude API",
@@ -10,31 +19,22 @@
       "passScore": 80
     },
     {
-      "slug": "javascript-sample",
-      "path": "quizzes/javascript-sample/",
-      "course": "JavaScript Sample",
-      "blurb": "Throwaway sample quiz for pipeline testing.",
-      "questions": 5,
-      "topics": 3,
-      "passScore": 70
-    },
-    {
-      "slug": "platform-demo",
-      "path": "quizzes/platform-demo/",
-      "course": "Platform Demo Quiz",
-      "blurb": "Sample quiz wired to the live Sheets receiver. Enter your details to begin.",
-      "questions": 3,
-      "topics": 2,
+      "slug": "agent-skills",
+      "path": "quizzes/agent-skills/",
+      "course": "Introduction to Agent Skills",
+      "blurb": "Covers the full Agent Skills course: what Skills are, creating your first Skill, configuration and multi-file Skills, Skills vs other Claude Code features, sharing, and troubleshooting. Grounded in the course curriculum and current Claude Code behavior.",
+      "questions": 16,
+      "topics": 6,
       "passScore": 80
     },
     {
-      "slug": "web-basics-sample",
-      "path": "quizzes/web-basics-sample/",
-      "course": "Web Basics Sample",
-      "blurb": "Throwaway sample quiz for pipeline testing.",
-      "questions": 5,
-      "topics": 3,
-      "passScore": 70
+      "slug": "mcp",
+      "path": "quizzes/mcp/",
+      "course": "Introduction to Model Context Protocol",
+      "blurb": "Covers the full MCP course: architecture and clients, building servers with the Python SDK, connecting clients with resources and prompts, and the three core primitives. Grounded in the course curriculum and current MCP behavior.",
+      "questions": 18,
+      "topics": 4,
+      "passScore": 80
     }
   ]
 }
